@@ -39,7 +39,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
         return ret
 
     def lookup(self, uri):
-        logger.info('Bandcamp lookup "%s"', uri)
+        logger.debug('Bandcamp lookup "%s"', uri)
         _, func, bcId = uri.split(":")
         ret = []
         if func == "album" or func == "track":
@@ -49,15 +49,19 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                     return [self.TRACKS[bcId]]
             else:
                 artist, album = bcId.split("-")
-            respdata = requests.get(
-                "https://bandcamp.com/api/mobile/24/tralbum_details?band_id="
-                + artist
-                + "&tralbum_type="
-                + ("a" if func == "album" else "t")
-                + "&tralbum_id="
-                + (album if func == "album" else song)
-            )
-            resp = json.loads(respdata.text)
+            try:
+                respdata = requests.get(
+                    "https://bandcamp.com/api/mobile/24/tralbum_details?band_id="
+                    + artist
+                    + "&tralbum_type="
+                    + ("a" if func == "album" else "t")
+                    + "&tralbum_id="
+                    + (album if func == "album" else song)
+                )
+                resp = json.loads(respdata.text)
+            except Exception:
+                logger.exception('Bandcamp failed to load info for "%s"', uri)
+                return []
             dt = datetime.date
             year = "0000"
             if "release_date" in resp and resp["release_date"] is not None:
@@ -136,13 +140,17 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                     self.IMAGES[
                         f"{artist}-{album}-{track['track_id']}"
                     ] = f"a{resp['art_id']:010d}"
-            logger.info("Bandcamp returned %d tracks in lookup", len(ret))
+            logger.debug("Bandcamp returned %d tracks in lookup", len(ret))
         elif func == "artist":
-            respdata = requests.post(
-                "https://bandcamp.com/api/mobile/24/band_details",
-                json={"band_id": bcId},
-            )
-            resp = json.loads(respdata.text)
+            try:
+                respdata = requests.post(
+                    "https://bandcamp.com/api/mobile/24/band_details",
+                    json={"band_id": bcId},
+                )
+                resp = json.loads(respdata.text)
+            except Exception:
+                logger.exception('Bandcamp failed to load artist info for "%s"', uri)
+                return []
             if "discography" in resp:
                 for disc in resp["discography"]:
                     if disc["item_type"] == "album":
@@ -182,7 +190,6 @@ class BandcampLibraryProvider(backend.LibraryProvider):
         except Exception:
             logger.exception("Bandcamp failed to search.")
         if "results" in resp:
-            logger.info("Bandcamp returned %d entries", len(resp["results"]))
             for r in resp["results"]:
                 if r["type"] == "t":
                     artref = Artist(
@@ -243,7 +250,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         musicbrainz_id="",
                     )
                     artists.add(artref)
-        logger.info(
+        logger.debug(
             "Bandcamp search returned %d results",
             len(tracks) + len(albums) + len(artists),
         )
@@ -257,7 +264,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
 
 class BandcampPlaybackProvider(backend.PlaybackProvider):
     def translate_uri(self, uri):
-        logger.info('"Bandcamp translate_uri "%s"', uri)
+        logger.debug('"Bandcamp translate_uri "%s"', uri)
         if "bandcamp:track:" not in uri:
             return None
 
@@ -274,7 +281,7 @@ class BandcampPlaybackProvider(backend.PlaybackProvider):
             if "tracks" in resp:
                 tr = resp["tracks"][0]
                 if "streaming_url" in tr and "mp3-128" in tr["streaming_url"]:
-                    logger.info(
+                    logger.debug(
                         "Bandcamp found url '%s'",
                         tr["streaming_url"]["mp3-128"],
                     )
