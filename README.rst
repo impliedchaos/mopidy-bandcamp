@@ -1,6 +1,18 @@
 Mopidy-Bandcamp
 ****************
 
+.. image:: https://img.shields.io/pypi/v/Mopidy-Bandcamp
+    :target: https://pypi.org/project/Mopidy-Bandcamp
+    :alt: Latest PyPI version
+
+.. image:: https://img.shields.io/github/v/release/impliedchaos/mopidy-bandcamp
+    :target: https://github.com/impliedchaos/mopidy-bandcamp/releases
+    :alt: Latest GitHub release
+
+.. image:: https://img.shields.io/github/commits-since/impliedchaos/mopidy-bandcamp/latest
+    :target: https://github.com/impliedchaos/mopidy-bandcamp/commits/master
+    :alt: Latest GitHub Commits
+
 `Mopidy <http://www.mopidy.com/>`_ extension for playing music from
 `Bandcamp <http://bandcamp.com/>`_.
 
