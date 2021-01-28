@@ -2,6 +2,7 @@ import datetime
 
 from mopidy import backend
 from mopidy.models import Album, Artist, Image, SearchResult, Track
+from urllib.parse import quote
 
 from mopidy_bandcamp import logger
 
@@ -49,14 +50,16 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             year = "0000"
             if "release_date" in resp and resp["release_date"] is not None:
                 year = dt.fromtimestamp(resp["release_date"]).strftime("%Y")
+            if "bandcamp_url" in resp:
+                comment = "URL: " + resp["bandcamp_url"]
             if "art_id" in resp:
                 self.IMAGES[bcId] = f"a{resp['art_id']:010d}"
+                if self.backend.art_comment:
+                    comment = f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_10.jpg"
             genre = ""
             if "tags" in resp:
                 genre = "; ".join([t["name"] for t in resp["tags"]])
             comment = ""
-            if "bandcamp_url" in resp:
-                comment = "URL: " + resp["bandcamp_url"]
             artref = Artist(
                 uri=f"bandcamp:artist:{artist}",
                 name=resp["tralbum_artist"],
@@ -72,57 +75,31 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                 date=year,
                 musicbrainz_id="",
             )
-            if func == "album":
-                for track in resp["tracks"]:
-                    if "streaming_url" in track:
-                        trref = Track(
-                            uri=f"bandcamp:track:{artist}-{album}-{track['track_id']}",
-                            name=track["title"],
-                            artists=[artref],
-                            album=albref,
-                            composers=[],
-                            performers=[],
-                            genre=genre,
-                            track_no=track["track_num"],
-                            disc_no=None,
-                            date=year,
-                            length=int(track["duration"] * 1000),
-                            bitrate=128,
-                            comment=comment,
-                            musicbrainz_id="",
-                            last_modified=None,
-                        )
-                        ret.append(trref)
-                        self.TRACKS[f"{bcId}-{track['track_id']}"] = trref
-                        if "art_id" in resp:
-                            self.IMAGES[
-                                f"{artist}-{album}-{track['track_id']}"
-                            ] = f"a{resp['art_id']:010d}"
-            elif func == "track":
-                track = resp["tracks"][0]
-                trref = Track(
-                    uri=f"bandcamp:track:{artist}-{album}-{track['track_id']}",
-                    name=track["title"],
-                    artists=[artref],
-                    album=albref,
-                    composers=[],
-                    performers=[],
-                    genre=genre,
-                    track_no=track["track_num"],
-                    disc_no=None,
-                    date=year,
-                    length=int(track["duration"] * 1000),
-                    bitrate=128,
-                    comment=comment,
-                    musicbrainz_id="",
-                    last_modified=None,
-                )
-                ret.append(trref)
-                self.TRACKS[bcId] = trref
-                if "art_id" in resp:
-                    self.IMAGES[
-                        f"{artist}-{album}-{track['track_id']}"
-                    ] = f"a{resp['art_id']:010d}"
+            for track in resp["tracks"]:
+                if "streaming_url" in track:
+                    trref = Track(
+                        uri=f"bandcamp:track:{artist}-{album}-{track['track_id']}",
+                        name=track["title"],
+                        artists=[artref],
+                        album=albref,
+                        composers=[],
+                        performers=[],
+                        genre=genre,
+                        track_no=track["track_num"],
+                        disc_no=None,
+                        date=year,
+                        length=int(track["duration"] * 1000),
+                        bitrate=128,
+                        comment=comment,
+                        musicbrainz_id="",
+                        last_modified=None,
+                    )
+                    ret.append(trref)
+                    self.TRACKS[f"{bcId}-{track['track_id']}"] = trref
+                    if "art_id" in resp:
+                        self.IMAGES[
+                            f"{artist}-{album}-{track['track_id']}"
+                        ] = f"a{resp['art_id']:010d}"
             logger.debug("Bandcamp returned %d tracks in lookup", len(ret))
         elif func == "artist":
             try:
@@ -158,9 +135,9 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                     r.extend(v)
                 else:
                     r.append(v)
-            q = "+".join(r)
+            q = "+".join(map(quote, r))
         elif type(query) is list:
-            q = "+".join(query)
+            q = "+".join(map(quote, query))
         try:
             resp = self.backend.bandcamp.search(q)
         except Exception:
@@ -183,6 +160,13 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         date="0000",
                         musicbrainz_id="",
                     )
+                    comment = ""
+                    if "bandcamp_url" in resp:
+                        comment = "URL: " + resp["bandcamp_url"]
+                    if "art_id" in r:
+                        self.IMAGES[f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}"] = f"a{r['art_id']:010d}"
+                        if self.backend.art_comment:
+                            comment = f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_10.jpg"
                     trref = Track(
                         uri=f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}",
                         name=r["name"],
@@ -196,7 +180,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         date="0000",
                         length=None,
                         bitrate=128,
-                        comment="",
+                        comment=comment,
                         musicbrainz_id="",
                         last_modified=None,
                     )
