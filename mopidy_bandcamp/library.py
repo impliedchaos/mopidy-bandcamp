@@ -146,7 +146,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                 musicbrainz_id="",
             )
             for track in resp["tracks"]:
-                if "streaming_url" in track:
+                if track["is_streamable"]:
                     trref = Track(
                         uri=f"bandcamp:track:{artist}-{album}-{track['track_id']}",
                         name=track["title"],
