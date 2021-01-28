@@ -22,6 +22,9 @@ class Extension(ext.Extension):
     def get_config_schema(self):
         schema = super(Extension, self).get_config_schema()
         schema["art_url_as_comment"] = config.Boolean(optional=True)
+        schema["discover_pages"] = config.Integer(optional=True)
+        schema["discover_genres"] = config.List(optional=True)
+        schema["discover_tags"] = config.List(optional=True)
         return schema
 
     def get_command(self):

@@ -1,17 +1,87 @@
 import datetime
+import re
 
 from mopidy import backend
-from mopidy.models import Album, Artist, Image, SearchResult, Track
+from mopidy.models import Album, Artist, Image, Ref, SearchResult, Track
 from urllib.parse import quote
 
 from mopidy_bandcamp import logger
 
 
 class BandcampLibraryProvider(backend.LibraryProvider):
+    root_directory = Ref.directory(uri="bandcamp:browse", name="bandcamp")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.TRACKS = {}
         self.IMAGES = {}
+        self.tags = self.backend.config["bandcamp"]["discover_tags"]
+        self.genres = self.backend.config["bandcamp"]["discover_genres"]
+        self.pages = self.backend.config["bandcamp"]["discover_pages"]
+
+    def browse(self, uri):
+        if not uri:
+            return []
+        logger.info('Bandcamp browse : "%s"', uri)
+        if uri == "bandcamp:browse":
+            if self.pages:
+                dirs = [
+                    Ref.directory(uri="bandcamp:genres", name="Discover by Genre"),
+                    Ref.directory(uri="bandcamp:tags", name="Discover by Tag"),
+                ]
+                return dirs
+            else:
+                return []
+        if uri == "bandcamp:genres":
+            return [
+                Ref.directory(
+                    uri="bandcamp:genre:"
+                    + re.sub(r",", "%2C", re.sub(r"[^a-z0-9,]", "-", d.lower())),
+                    name=d,
+                )
+                for d in self.genres
+            ]
+        if uri == "bandcamp:tags":
+            return [
+                Ref.directory(
+                    uri="bandcamp:tag:"
+                    + re.sub(r",", "%2C", re.sub(r"[^a-z0-9,]", "-", d.lower())),
+                    name=d,
+                )
+                for d in self.tags
+            ]
+        if uri.startswith("bandcamp:genre:") or uri.startswith("bandcamp:tag:"):
+            _, stype, sid = uri.split(":")
+            out = []
+            for page in range(self.pages):
+                try:
+                    if stype == "genre":
+                        resp = self.backend.bandcamp.discover(genre=sid, page=page)
+                    else:
+                        resp = self.backend.bandcamp.discover(tag=sid, page=page)
+                except Exception:
+                    logger.exception('Bandcamp failed to discover genre "%s"', uri)
+                if "items" in resp:
+                    for item in resp["items"]:
+                        art = None
+                        if "art_id" in item:
+                            art = f"a{item['art_id']:010d}"
+                        if item["type"] == "a":
+                            aId = f"{item['band_id']}-{item['id']}"
+                            name = f"{item['secondary_text']} - {item['primary_text']} (Album)"
+                            if art:
+                                self.IMAGES[aId] = art
+                            out.append(
+                                Ref.album(uri="bandcamp:album:" + aId, name=name)
+                            )
+                        else:
+                            # Only seen discover return album types.
+                            logger.info("Type: '%s'", item["type"])
+                            logger.info(item)
+            return out
+        if uri.startswith("bandcamp:album:"):
+            tracks = self.lookup(uri)
+            return [Ref.track(uri=t.uri, name=t.name) for t in tracks]
 
     def get_images(self, uris):
         ret = {}
@@ -88,7 +158,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         track_no=track["track_num"],
                         disc_no=None,
                         date=year,
-                        length=int(track["duration"] * 1000),
+                        length=int(track["duration"] * 1000) if track["duration"] else None,
                         bitrate=128,
                         comment=comment,
                         musicbrainz_id="",
@@ -164,7 +234,9 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                     if "bandcamp_url" in resp:
                         comment = "URL: " + resp["bandcamp_url"]
                     if "art_id" in r:
-                        self.IMAGES[f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}"] = f"a{r['art_id']:010d}"
+                        self.IMAGES[
+                            f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}"
+                        ] = f"a{r['art_id']:010d}"
                         if self.backend.art_comment:
                             comment = f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_10.jpg"
                     trref = Track(
