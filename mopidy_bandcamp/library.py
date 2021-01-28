@@ -34,31 +34,22 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                 return dirs
             else:
                 return []
-        if uri == "bandcamp:genres":
+        if uri == "bandcamp:genres" or uri == "bandcamp:tags":
+            stype = uri.split(":")[1]
             return [
                 Ref.directory(
-                    uri="bandcamp:genre:"
+                    uri="bandcamp:"
+                    + ("tag:" if stype == "tags" else "genre:")
                     + re.sub(r",", "%2C", re.sub(r"[^a-z0-9,]", "-", d.lower())),
                     name=d,
                 )
-                for d in self.genres
+                for d in (self.tags if stype == "tags" else self.genres)
             ]
-        if uri == "bandcamp:tags":
-            return [
-                Ref.directory(
-                    uri="bandcamp:tag:"
-                    + re.sub(r",", "%2C", re.sub(r"[^a-z0-9,]", "-", d.lower())),
-                    name=d,
-                )
-                for d in self.tags
-            ]
-        if uri.startswith("bandcamp:genre:") or uri.startswith("bandcamp:tag:"):
+        if re.match(r"^bandcamp:(genre|tag):", uri):
             component = uri.split(":")
             stype, sid = component[1:3]
-            pagenum = 0
             total = 0
-            if len(component) > 3:
-                pagenum = int(component[3])
+            pagenum = int(component[3]) if (len(component) > 3) else 0
             out = []
             for page in range(self.pages):
                 try:
@@ -72,24 +63,19 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         )
                 except Exception:
                     logger.exception('Bandcamp failed to discover genre "%s"', uri)
-                if "items" in resp:
-                    total = resp["total_count"]
-                    for item in resp["items"]:
-                        art = None
-                        if "art_id" in item:
-                            art = f"a{item['art_id']:010d}"
-                        if item["type"] == "a":
-                            aId = f"{item['band_id']}-{item['id']}"
-                            name = f"{item['secondary_text']} - {item['primary_text']} (Album)"
-                            if art:
-                                self.images[aId] = art
-                            out.append(
-                                Ref.album(uri="bandcamp:album:" + aId, name=name)
-                            )
-                        else:
-                            # Only seen discover return album types.
-                            logger.info("Type: '%s'", item["type"])
-                            logger.info(item)
+                total = resp["total_count"] if ("total_count" in resp) else 0
+                for i in resp["items"] if ("items" in resp) else []:
+                    art = f"a{i['art_id']:010d}" if ("art_id" in i) else None
+                    if i["type"] == "a":
+                        aId = f"{i['band_id']}-{i['id']}"
+                        name = f"{i['secondary_text']} - {i['primary_text']} (Album)"
+                        if art:
+                            self.images[aId] = art
+                        out.append(Ref.album(uri="bandcamp:album:" + aId, name=name))
+                    else:
+                        # Only seen discover return album types.
+                        logger.info("Type: '%s'", i["type"])
+                        logger.info(i)
             if (pagenum + self.pages) * DISCOVER_ITEMS_PER_PAGE < total:
                 pagenum += self.pages
                 out.append(
