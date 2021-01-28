@@ -1,11 +1,10 @@
 import datetime
-import json
 import pykka
-import requests
 
 from mopidy import backend
 from mopidy.models import Track, Album, Artist, SearchResult, Image
 from mopidy_bandcamp import logger
+from mopidy_bandcamp.bandcamp import BandcampClient
 
 
 class BandcampBackend(pykka.ThreadingActor, backend.Backend):
@@ -14,6 +13,7 @@ class BandcampBackend(pykka.ThreadingActor, backend.Backend):
         self.config = config
         self.audio = audio
         self.uri_schemes = ["bandcamp"]
+        self.bandcamp = BandcampClient()
         self.library = BandcampLibraryProvider(backend=self)
         self.playback = BandcampPlaybackProvider(audio=audio, backend=self)
 
@@ -50,15 +50,10 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             else:
                 artist, album = bcId.split("-")
             try:
-                respdata = requests.get(
-                    "https://bandcamp.com/api/mobile/24/tralbum_details?band_id="
-                    + artist
-                    + "&tralbum_type="
-                    + ("a" if func == "album" else "t")
-                    + "&tralbum_id="
-                    + (album if func == "album" else song)
-                )
-                resp = json.loads(respdata.text)
+                if func == "track":
+                    resp = self.backend.bandcamp.get_track(artist, song)
+                else:
+                    resp = self.backend.bandcamp.get_album(artist, album)
             except Exception:
                 logger.exception('Bandcamp failed to load info for "%s"', uri)
                 return []
@@ -73,7 +68,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                 genre = "; ".join([t['name'] for t in resp['tags']])
             comment = ""
             if 'bandcamp_url' in resp:
-                comment = "On bandcamp: " + resp['bandcamp_url']
+                comment = "URL: " + resp['bandcamp_url']
             artref = Artist(
                 uri=f"bandcamp:artist:{artist}",
                 name=resp["tralbum_artist"],
@@ -143,11 +138,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             logger.debug("Bandcamp returned %d tracks in lookup", len(ret))
         elif func == "artist":
             try:
-                respdata = requests.post(
-                    "https://bandcamp.com/api/mobile/24/band_details",
-                    json={"band_id": bcId},
-                )
-                resp = json.loads(respdata.text)
+                resp = self.backend.bandcamp.get_artist(bcId)
             except Exception:
                 logger.exception('Bandcamp failed to load artist info for "%s"', uri)
                 return []
@@ -183,10 +174,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
         elif type(query) is list:
             q = "+".join(query)
         try:
-            respdata = requests.get(
-                f"https://bandcamp.com/api/fuzzysearch/1/app_autocomplete?q={q}"
-            )
-            resp = json.loads(respdata.text)
+            resp = self.backend.bandcamp.search(q)
         except Exception:
             logger.exception("Bandcamp failed to search.")
         if "results" in resp:
@@ -263,6 +251,9 @@ class BandcampLibraryProvider(backend.LibraryProvider):
 
 
 class BandcampPlaybackProvider(backend.PlaybackProvider):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def translate_uri(self, uri):
         logger.debug('"Bandcamp translate_uri "%s"', uri)
         if "bandcamp:track:" not in uri:
@@ -271,13 +262,7 @@ class BandcampPlaybackProvider(backend.PlaybackProvider):
         try:
             _, func, p = uri.split(":")
             artist, album, track = p.split("-")
-            respdata = requests.get(
-                "https://bandcamp.com/api/mobile/24/tralbum_details?band_id="
-                + artist
-                + "&tralbum_type=t&tralbum_id="
-                + track
-            )
-            resp = json.loads(respdata.text)
+            resp = self.backend.bandcamp.get_track(artist, track)
             if "tracks" in resp:
                 tr = resp["tracks"][0]
                 if "streaming_url" in tr and "mp3-128" in tr["streaming_url"]:
