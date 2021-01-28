@@ -21,6 +21,7 @@ class Extension(ext.Extension):
 
     def get_config_schema(self):
         schema = super(Extension, self).get_config_schema()
+        schema["art_url_as_comment"] = config.Boolean(optional=True)
         return schema
 
     def get_command(self):

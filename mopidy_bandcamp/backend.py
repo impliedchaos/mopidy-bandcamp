@@ -12,6 +12,7 @@ class BandcampBackend(pykka.ThreadingActor, backend.Backend):
         self.config = config
         self.audio = audio
         self.uri_schemes = ["bandcamp"]
+        self.art_comment = config["bandcamp"]["art_url_as_comment"]
         self.bandcamp = BandcampClient()
         self.library = BandcampLibraryProvider(backend=self)
         self.playback = BandcampPlaybackProvider(audio=audio, backend=self)
