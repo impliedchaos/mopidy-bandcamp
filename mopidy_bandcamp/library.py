@@ -63,13 +63,17 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             for page in range(self.pages):
                 try:
                     if stype == "genre":
-                        resp = self.backend.bandcamp.discover(genre=sid, page=page + pagenum)
+                        resp = self.backend.bandcamp.discover(
+                            genre=sid, page=page + pagenum
+                        )
                     else:
-                        resp = self.backend.bandcamp.discover(tag=sid, page=page + pagenum)
+                        resp = self.backend.bandcamp.discover(
+                            tag=sid, page=page + pagenum
+                        )
                 except Exception:
                     logger.exception('Bandcamp failed to discover genre "%s"', uri)
                 if "items" in resp:
-                    total = resp['total_count']
+                    total = resp["total_count"]
                     for item in resp["items"]:
                         art = None
                         if "art_id" in item:
@@ -89,7 +93,9 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             if (pagenum + self.pages) * DISCOVER_ITEMS_PER_PAGE < total:
                 pagenum += self.pages
                 out.append(
-                    Ref.directory(uri=f"bandcamp:{stype}:{sid}:{pagenum}", name="More...")
+                    Ref.directory(
+                        uri=f"bandcamp:{stype}:{sid}:{pagenum}", name="More..."
+                    )
                 )
             return out
         if uri.startswith("bandcamp:album:"):
@@ -171,7 +177,9 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         track_no=track["track_num"],
                         disc_no=None,
                         date=year,
-                        length=int(track["duration"] * 1000) if track["duration"] else None,
+                        length=int(track["duration"] * 1000)
+                        if track["duration"]
+                        else None,
                         bitrate=128,
                         comment=comment,
                         musicbrainz_id="",
