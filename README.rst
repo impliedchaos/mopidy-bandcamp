@@ -19,8 +19,8 @@ Mopidy-Bandcamp
 This backend does not support authentication and listening to high quality
 streams in your collection.  I'd love to support that if someone wants to
 reverse-engineer the X-Bandcamp-DM and X-Bandcamp-PoW headers.  In the
-meantime, this allows searching bandcamp and playing the 128kbps
-preview streams.
+meantime, this allows searching bandcamp and playing the free 128kbps
+streams.
 
 Installation
 ============
@@ -40,6 +40,13 @@ the Mopidy configuration file::
     [bandcamp]
     enabled = true
 
+Other Configuration Options
+---------------------------
+
+- :code:`art_url_as_comment` - a hack to set the album art url as the track comment.  Default: false
+- :code:`discover_pages` - Number of pages to load in the browse discover sections.  Default: 1
+- :code:`discover_genres` - List of bandcamp's genres to discover.  You'll only want to edit this to remove unwanted genres.
+- :code:`discover_tags` - List of bandcamp tags to discover. You'll really want to change this to any tags that interest you.
 
 
 Project resources
