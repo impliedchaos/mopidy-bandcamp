@@ -7,8 +7,6 @@ from urllib.parse import quote
 
 from mopidy_bandcamp import logger
 
-DISCOVER_ITEMS_PER_PAGE = 48
-
 
 class BandcampLibraryProvider(backend.LibraryProvider):
     root_directory = Ref.directory(uri="bandcamp:browse", name="bandcamp")
@@ -76,7 +74,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         # Only seen discover return album types.
                         logger.info("Type: '%s'", i["type"])
                         logger.info(i)
-            if (pagenum + self.pages) * DISCOVER_ITEMS_PER_PAGE < total:
+            if (pagenum + self.pages) * self.backend.bandcamp.PAGE_ITEMS < total:
                 pagenum += self.pages
                 out.append(
                     Ref.directory(
@@ -91,15 +89,22 @@ class BandcampLibraryProvider(backend.LibraryProvider):
     def get_images(self, uris):
         ret = {}
         for uri in uris:
+            ret[uri] = []
             bcId = uri.split(":")[2]
             if bcId in self.images:
                 i = self.images[bcId]
                 if type(i) is int:
-                    ret[uri] = [Image(uri=f"https://f4.bcbits.com/img/{i:010d}_10.jpg")]
+                    img = f"https://f4.bcbits.com/img/{i:010d}"
                 else:
-                    ret[uri] = [Image(uri=f"https://f4.bcbits.com/img/{i}_10.jpg")]
-            else:
-                ret[uri] = []
+                    img = f"https://f4.bcbits.com/img/{i}"
+                for s in self.backend.image_sizes:
+                    if s in self.backend.bandcamp.IMAGE_SIZE:
+                        d = self.backend.bandcamp.IMAGE_SIZE[s]
+                        ret[uri].append(
+                            Image(uri=img + f"_{s}.jpg", width=d[0], height=d[1])
+                        )
+                    else:
+                        ret[uri].append(Image(uri=img + f"_{s}.jpg"))
         return ret
 
     def lookup(self, uri):
@@ -130,7 +135,10 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             if "art_id" in resp:
                 self.images[bcId] = f"a{resp['art_id']:010d}"
                 if self.backend.art_comment:
-                    comment = f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_10.jpg"
+                    size = self.backend.image_sizes[0]
+                    comment = (
+                        f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_{size}.jpg"
+                    )
             genre = ""
             if "tags" in resp:
                 genre = "; ".join([t["name"] for t in resp["tags"]])
@@ -245,7 +253,8 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                             f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}"
                         ] = f"a{r['art_id']:010d}"
                         if self.backend.art_comment:
-                            comment = f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_10.jpg"
+                            size = self.backend.image_sizes[0]
+                            comment = f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_{size}.jpg"
                     trref = Track(
                         uri=f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}",
                         name=r["name"],

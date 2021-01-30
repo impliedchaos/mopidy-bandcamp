@@ -24,6 +24,7 @@ class Extension(ext.Extension):
         schema["discover_pages"] = config.Integer(optional=True)
         schema["discover_genres"] = config.List(optional=True)
         schema["discover_tags"] = config.List(optional=True)
+        schema["image_sizes"] = config.List(optional=True)
         return schema
 
     def get_command(self):

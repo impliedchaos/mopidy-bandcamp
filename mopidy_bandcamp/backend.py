@@ -13,6 +13,9 @@ class BandcampBackend(pykka.ThreadingActor, backend.Backend):
         self.audio = audio
         self.uri_schemes = ["bandcamp"]
         self.art_comment = config["bandcamp"]["art_url_as_comment"]
+        self.image_sizes = []
+        for s in config["bandcamp"]["image_sizes"]:
+            self.image_sizes.append(str(s))
         self.bandcamp = BandcampClient()
         self.library = BandcampLibraryProvider(backend=self)
         self.playback = BandcampPlaybackProvider(audio=audio, backend=self)
