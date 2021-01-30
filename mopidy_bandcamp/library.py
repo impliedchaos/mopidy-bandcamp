@@ -22,7 +22,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
     def browse(self, uri):
         if not uri:
             return []
-        logger.info('Bandcamp browse : "%s"', uri)
+        logger.debug('Bandcamp browse : "%s"', uri)
         if uri == "bandcamp:browse":
             if self.pages:
                 dirs = [
@@ -72,7 +72,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         out.append(Ref.album(uri="bandcamp:album:" + aId, name=name))
                     else:
                         # Only seen discover return album types.
-                        logger.info("Type: '%s'", i["type"])
+                        logger.info("Found unknown type: '%s'", i["type"])
                         logger.info(i)
             if (pagenum + self.pages) * self.backend.bandcamp.PAGE_ITEMS < total:
                 pagenum += self.pages
