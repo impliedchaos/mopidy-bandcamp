@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+v1.0.1
+------
+
+- bug fixes after implenting more edge test cases
+
 v1.0.0
 ------
 
