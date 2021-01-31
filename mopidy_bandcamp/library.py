@@ -243,8 +243,8 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         musicbrainz_id="",
                     )
                     comment = ""
-                    if "bandcamp_url" in resp:
-                        comment = "URL: " + resp["bandcamp_url"]
+                    if "url" in resp:
+                        comment = "URL: " + resp["url"]
                     if "art_id" in r:
                         self.images[
                             f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}"
