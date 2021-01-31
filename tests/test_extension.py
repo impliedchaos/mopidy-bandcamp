@@ -113,6 +113,12 @@ class ExtensionTest(unittest.TestCase):
 
     def test_search_lookup_translate(self):
         backend = backend_lib.BandcampBackend(ExtensionTest.get_config(), None)
+        track = backend.library.lookup("bandcamp:track:nope-0-nuhuh")
+        assert track == []
+        artist = backend.library.lookup("bandcamp:artist:nope")
+        assert artist == []
+        album = backend.library.lookup("bandcamp:album:nope-nuhuh")
+        assert album == []
         res = backend.library.search({'any': 'waveshaper'})
         assert isinstance(res, SearchResult)
         res = backend.library.search('waveshaper')
