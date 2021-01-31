@@ -93,10 +93,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             bcId = uri.split(":")[2]
             if bcId in self.images:
                 i = self.images[bcId]
-                if type(i) is int:
-                    img = f"https://f4.bcbits.com/img/{i:010d}"
-                else:
-                    img = f"https://f4.bcbits.com/img/{i}"
+                img = f"https://f4.bcbits.com/img/{i}"
                 for s in self.backend.image_sizes:
                     if s in self.backend.bandcamp.IMAGE_SIZE:
                         d = self.backend.bandcamp.IMAGE_SIZE[s]
