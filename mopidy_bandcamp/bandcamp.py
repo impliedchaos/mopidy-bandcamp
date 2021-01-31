@@ -58,11 +58,17 @@ class BandcampClient:
             self.BASE_URL + "/mobile/24/band_details",
             json={"band_id": artistid},
         )
-        return resp.json()
+        json = resp.json()
+        if 'error' in json:
+            raise RuntimeError(json['error_message'])
+        return json
 
     def search(self, query):
         resp = requests.get(f"{self.BASE_URL}/fuzzysearch/1/app_autocomplete?q={query}")
-        return resp.json()
+        json = resp.json()
+        if 'error' in json:
+            raise RuntimeError(json['error_message'])
+        return json
 
     def discover(self, sort="top", genre="all", tag=None, page=0):
         query = f"{self.BASE_URL}/discover/2/get?s={sort}&l=0&emulate_loc=true&f=all&g={genre}"
@@ -71,4 +77,7 @@ class BandcampClient:
         if page > 0:
             query += f"&p={page}"
         resp = requests.get(query)
-        return resp.json()
+        json = resp.json()
+        if 'error' in json:
+            raise RuntimeError(json['error_message'])
+        return json
