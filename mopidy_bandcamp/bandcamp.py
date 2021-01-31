@@ -45,7 +45,10 @@ class BandcampClient:
             + "&tralbum_id="
             + str(itemid)
         )
-        return resp.json()
+        json = resp.json()
+        if 'error' in json:
+            raise RuntimeError(json['error_message'])
+        return json
 
     def get_track(self, artistid, trackid):
         return self.get_album(artistid, trackid, track=True)
