@@ -119,11 +119,11 @@ class ExtensionTest(unittest.TestCase):
         assert artist == []
         album = backend.library.lookup("bandcamp:album:nope-nuhuh")
         assert album == []
-        res = backend.library.search({"any": "waveshaper"})
+        res = backend.library.search({"any": "Waveshaper", "album": ["Station", "Nova"]})
         assert isinstance(res, SearchResult)
         res = backend.library.search(["Station", "Nova"])
         assert isinstance(res, SearchResult)
-        res = backend.library.search("waveshaper")
+        res = backend.library.search("Waveshaper")
         assert isinstance(res, SearchResult)
         artist = backend.library.lookup("bandcamp:artist:4274249518")
         assert isinstance(artist[0], Track)
@@ -139,3 +139,18 @@ class ExtensionTest(unittest.TestCase):
         assert uri is None
         uri = backend.playback.translate_uri("bandcamp:track:chewbacca")
         assert uri is None
+
+    def test_other(self):
+        cfg = ExtensionTest.get_config()
+        cfg["bandcamp"]["art_url_as_comment"] = True
+        cfg["bandcamp"]["discover_pages"] = 0
+        cfg["bandcamp"]["image_sizes"] = ["1"]
+        backend = backend_lib.BandcampBackend(cfg, None)
+        res = backend.library.search("Waveshaper")
+        assert isinstance(res, SearchResult)
+        track = backend.library.lookup("bandcamp:track:4274249518-4240848302-55800693")
+        assert isinstance(track[0], Track)
+        img = backend.library.get_images(["bandcamp:track:4274249518-4240848302-55800693"])
+        assert isinstance(img["bandcamp:track:4274249518-4240848302-55800693"][0], Image)
+        root = backend.library.browse("bandcamp:browse")
+        assert root == []
