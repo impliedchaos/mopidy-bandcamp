@@ -52,6 +52,14 @@ class ExtensionTest(unittest.TestCase):
         config["image_sizes"] = ["10", "5", "2"]
         return {"bandcamp": config, "proxy": {}}
 
+    def test_get_default_config(self):
+        ext = Extension()
+
+        config = ext.get_default_config()
+
+        assert "[bandcamp]" in config
+        assert "enabled=true" in config
+
     def test_get_config_schema(self):
         ext = Extension()
         schema = ext.get_config_schema()
@@ -79,32 +87,40 @@ class ExtensionTest(unittest.TestCase):
 
     def test_browse(self):
         backend = backend_lib.BandcampBackend(ExtensionTest.get_config(), None)
+        root = backend.library.browse(None)
+        assert root == []
+        root = backend.library.browse("chewbacca")
+        assert root is None
         root = backend.library.browse("bandcamp:browse")
         assert len(root) == 2
         g1 = backend.library.browse("bandcamp:genres")
         assert len(g1) == len(backend.library.genres)
         assert g1[1].name == "Electronic"
-        g2 = backend.library.browse(g1[1].uri)
+        g2 = backend.library.browse(g1[1].uri + ":2")
         # Length SHOULD be 49, but Bandcamp is friggin crazy, and doesn't
         # always send the same number of items.
-        assert len(g2) > 1
+        assert len(g2) > 40
         t1 = backend.library.browse("bandcamp:tags")
         assert len(t1) == len(backend.library.tags)
         assert t1[1].name == "Future Funk"
         t2 = backend.library.browse(t1[1].uri)
         # Length SHOULD be 49, but Bandcamp is friggin crazy, and doesn't
         # always send the same number of items.
-        assert len(t2) > 1
+        assert len(t2) > 40
         a = backend.library.browse(t2[0].uri)
         # Album browse
         assert len(a) > 1
 
     def test_search_lookup_translate(self):
         backend = backend_lib.BandcampBackend(ExtensionTest.get_config(), None)
+        res = backend.library.search({'any': 'waveshaper'})
+        assert isinstance(res, SearchResult)
         res = backend.library.search('waveshaper')
         assert isinstance(res, SearchResult)
         artist = backend.library.lookup(res.artists[0].uri)
         assert isinstance(artist[0], Track)
+        res = backend.library.search(['Station', 'Nova'])
+        assert isinstance(res, SearchResult)
         album = backend.library.lookup(res.albums[0].uri)
         assert isinstance(album[0], Track)
         track = backend.library.lookup(album[0].uri)
@@ -114,4 +130,6 @@ class ExtensionTest(unittest.TestCase):
         uri = backend.playback.translate_uri(album[0].uri)
         assert uri.startswith('http')
         uri = backend.playback.translate_uri("chewbacca")
+        assert uri is None
+        uri = backend.playback.translate_uri("bandcamp:track:chewbacca")
         assert uri is None
