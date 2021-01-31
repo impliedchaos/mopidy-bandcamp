@@ -13,6 +13,10 @@ Mopidy-Bandcamp
     :target: https://github.com/impliedchaos/mopidy-bandcamp/commits/master
     :alt: Latest GitHub Commits
 
+.. image:: https://img.shields.io/codecov/c/github/impliedchaos/mopidy-bandcamp
+    :target: https://app.codecov.io/gh/impliedchaos/mopidy-bandcamp/
+    :alt: Code Coverage
+
 `Mopidy <http://www.mopidy.com/>`_ extension for playing music from
 `Bandcamp <http://bandcamp.com/>`_.
 
