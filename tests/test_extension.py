@@ -119,7 +119,9 @@ class ExtensionTest(unittest.TestCase):
         assert artist == []
         album = backend.library.lookup("bandcamp:album:nope-nuhuh")
         assert album == []
-        res = backend.library.search({"any": "Waveshaper", "album": ["Station", "Nova"]})
+        res = backend.library.search(
+            {"any": "Waveshaper", "album": ["Station", "Nova"]}
+        )
         assert isinstance(res, SearchResult)
         res = backend.library.search(["Station", "Nova"])
         assert isinstance(res, SearchResult)
@@ -131,8 +133,12 @@ class ExtensionTest(unittest.TestCase):
         assert isinstance(album[0], Track)
         track = backend.library.lookup("bandcamp:track:4274249518-4240848302-55800693")
         assert isinstance(track[0], Track)
-        img = backend.library.get_images(["bandcamp:track:4274249518-4240848302-55800693"])
-        assert isinstance(img["bandcamp:track:4274249518-4240848302-55800693"][0], Image)
+        img = backend.library.get_images(
+            ["bandcamp:track:4274249518-4240848302-55800693"]
+        )
+        assert isinstance(
+            img["bandcamp:track:4274249518-4240848302-55800693"][0], Image
+        )
         uri = backend.playback.translate_uri(album[0].uri)
         assert uri.startswith("http")
         uri = backend.playback.translate_uri("chewbacca")
@@ -150,7 +156,11 @@ class ExtensionTest(unittest.TestCase):
         assert isinstance(res, SearchResult)
         track = backend.library.lookup("bandcamp:track:4274249518-4240848302-55800693")
         assert isinstance(track[0], Track)
-        img = backend.library.get_images(["bandcamp:track:4274249518-4240848302-55800693"])
-        assert isinstance(img["bandcamp:track:4274249518-4240848302-55800693"][0], Image)
+        img = backend.library.get_images(
+            ["bandcamp:track:4274249518-4240848302-55800693"]
+        )
+        assert isinstance(
+            img["bandcamp:track:4274249518-4240848302-55800693"][0], Image
+        )
         root = backend.library.browse("bandcamp:browse")
         assert root == []
