@@ -46,8 +46,8 @@ class BandcampClient:
             + str(itemid)
         )
         json = resp.json()
-        if 'error' in json:
-            raise RuntimeError(json['error_message'])
+        if "error" in json:
+            raise RuntimeError(json["error_message"])
         return json
 
     def get_track(self, artistid, trackid):
@@ -59,8 +59,8 @@ class BandcampClient:
             json={"band_id": artistid},
         )
         json = resp.json()
-        if 'error' in json:
-            raise RuntimeError(json['error_message'])
+        if "error" in json:
+            raise RuntimeError(json["error_message"])
         return json
 
     def search(self, query):
