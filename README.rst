@@ -49,7 +49,7 @@ the Mopidy configuration file::
 Other Configuration Options
 ---------------------------
 
-- :code:`discover_tags` - List of tags to discover. **You'll really want to change this to any tags that interest you.**
+- :code:`discover_tags` - List of tags to discover. **You'll really want to change this to any tags that interest you.** Example: :code:`discover_tags = French House, Brit Pop, Tokyo, New Wave, Industrial`
 - :code:`discover_genres` - List of bandcamp's genres to discover.  You'll only want to edit this to remove unwanted genres.
 - :code:`discover_pages` - Number of pages to load in the browse discover sections.  Default: 1
 - :code:`art_url_as_comment` - a hack to set the album art url as the track comment.  Default: false
