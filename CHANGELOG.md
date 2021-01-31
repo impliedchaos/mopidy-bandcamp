@@ -1,6 +1,14 @@
 Change Log
 ==========
 
+v1.0.0
+------
+
+YAY!
+
+- updated error handling
+- added testing and code coverage
+
 v0.2.1
 ------
 
