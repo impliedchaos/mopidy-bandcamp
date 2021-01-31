@@ -251,7 +251,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         ] = f"a{r['art_id']:010d}"
                         if self.backend.art_comment:
                             size = self.backend.image_sizes[0]
-                            comment = f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_{size}.jpg"
+                            comment = f"https://f4.bcbits.com/img/a{r['art_id']:010d}_{size}.jpg"
                     trref = Track(
                         uri=f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}",
                         name=r["name"],
