@@ -1,4 +1,7 @@
+import mopidy_bandcamp
 import requests
+
+from mopidy import httpclient
 
 
 class BandcampClient:
@@ -35,8 +38,30 @@ class BandcampClient:
         "27": [715, 402],
     }
 
+    def __init__(self, config):
+        self.proxy = httpclient.format_proxy(config["proxy"])
+        self.ua_str = httpclient.format_user_agent(
+            f"{mopidy_bandcamp.Extension.dist_name}/{mopidy_bandcamp.__version__}"
+        )
+
+    def _get(self, *args, **kwargs):
+        headers = {"User-Agent": self.ua_str}
+        resp = requests.get(*args, **kwargs, headers=headers, proxies=self.proxy)
+        json = resp.json()
+        if "error" in json:
+            raise RuntimeError(json["error_message"])
+        return json
+
+    def _post(self, *args, **kwargs):
+        headers = {"User-Agent": self.ua_str}
+        resp = requests.post(*args, **kwargs, headers=headers, proxies=self.proxy)
+        json = resp.json()
+        if "error" in json:
+            raise RuntimeError(json["error_message"])
+        return json
+
     def get_album(self, artistid, itemid, track=False):
-        resp = requests.get(
+        json = self._get(
             self.BASE_URL
             + "/mobile/24/tralbum_details?band_id="
             + str(artistid)
@@ -45,27 +70,21 @@ class BandcampClient:
             + "&tralbum_id="
             + str(itemid)
         )
-        json = resp.json()
-        if "error" in json:
-            raise RuntimeError(json["error_message"])
         return json
 
     def get_track(self, artistid, trackid):
         return self.get_album(artistid, trackid, track=True)
 
     def get_artist(self, artistid):
-        resp = requests.post(
+        json = self._post(
             self.BASE_URL + "/mobile/24/band_details",
             json={"band_id": artistid},
         )
-        json = resp.json()
-        if "error" in json:
-            raise RuntimeError(json["error_message"])
         return json
 
     def search(self, query):
-        resp = requests.get(f"{self.BASE_URL}/fuzzysearch/1/app_autocomplete?q={query}")
-        return resp.json()
+        json = self._get(f"{self.BASE_URL}/fuzzysearch/1/app_autocomplete?q={query}")
+        return json
 
     def discover(self, sort="top", genre="all", tag=None, page=0):
         query = f"{self.BASE_URL}/discover/2/get?s={sort}&l=0&emulate_loc=true&f=all&g={genre}"
@@ -73,5 +92,5 @@ class BandcampClient:
             query += f"&t={tag}"
         if page > 0:
             query += f"&p={page}"
-        resp = requests.get(query)
-        return resp.json()
+        json = self._get(query)
+        return json
