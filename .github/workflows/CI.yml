@@ -25,6 +25,8 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
 
+    env:
+        TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -38,11 +40,7 @@ jobs:
           TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
       - run: python -m tox -e ${{ matrix.tox }}
         if: ${{ ! matrix.coverage }}
-        env:
-          TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
       - run: python -m tox -e ${{ matrix.tox }} -- --cov-report=xml
         if: ${{ matrix.coverage }}
-        env:
-          TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
       - uses: codecov/codecov-action@v1
         if: ${{ matrix.coverage }}
