@@ -32,22 +32,12 @@ Installation
 
 Install by running::
 
-    sudo pip install Mopidy-Bandcamp
+    sudo python3 -m pip install Mopidy-Bandcamp
 
 
 
-Configuration
-=============
-
-Before starting Mopidy, you must enable Mopidy-Bandcamp in 
-the Mopidy configuration file::
-
-    [bandcamp]
-    enabled = true
-
-
-Other Configuration Options
----------------------------
+Configuration Options
+=====================
 
 - :code:`discover_tags` - List of tags to discover. **You'll really want to change this to any tags that interest you.** Example: :code:`discover_tags = French House, Brit Pop, Tokyo, New Wave, Industrial`
 - :code:`discover_genres` - List of bandcamp's genres to discover.  You'll only want to edit this to remove unwanted genres.
