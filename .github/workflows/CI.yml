@@ -35,7 +35,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install tox pytest pytest-cov flake8
-      - run: echo $TEST_BANDCAMP_ID
+      - run: echo $TEST_BANDCAMP_ID | wc
       - run: python -m tox -e ${{ matrix.tox }}
         if: ${{ ! matrix.coverage }}
         env:
