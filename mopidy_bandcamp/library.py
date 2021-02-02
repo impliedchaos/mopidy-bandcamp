@@ -42,7 +42,8 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             try:
                 data = self.backend.bandcamp.get_collection(token=token)
                 for i in data["items"]:
-                    art = f"a{i['art_id']:010d}" if ("art_id" in i) else None
+                    if 'item_art' in i and 'art_id' in i['item_art']:
+                        art = f"a{i['item_art']['art_id']:010d}" if i["item_art"]["art_id"] else None
                     if i["tralbum_type"] == "a":
                         aId = f"{i['band_id']}-{i['album_id']}"
                         name = f"{i['band_name']} - {i['album_title']} (Album)"
