@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+v1.1.1
+------
+
+- added support for scraping bandcamp websites
+
 v1.1.0
 ------
 
