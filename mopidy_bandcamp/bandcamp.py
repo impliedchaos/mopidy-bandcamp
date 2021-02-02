@@ -72,25 +72,37 @@ class BandcampClient:
         if self.identity:
             headers["Cookie"] = f"identity={self.identity}"
         resp = requests.get(uri, headers=headers, proxies=self.proxy)
-        # Build the tralbum data by joining three separate json chunks.
+        # Build the tralbum data by joining multiple json chunks.
         data = re.search(r'\s+data-tralbum="(.*?)"', resp.text)
         if data is None:
             raise RuntimeError("Couldn't scrape data-tralbum from " + uri)
             return None
         tralbum = json.loads(unescape(data.group(1)))
-        data = re.search(r'\s+data-band-follow-info="(.*?)"', resp.text)
-        if data is None:
-            raise RuntimeError("Couldn't scrape data-band-follow-info from " + uri)
-            return None
-        tralbum.update(json.loads(unescape(data.group(1))))
-        data = re.search(r'\s+data-embed="(.*?)"', resp.text)
-        if data is None:
-            raise RuntimeError("Couldn't scrape data-embed from " + uri)
-            return None
-        tralbum.update(json.loads(unescape(data.group(1))))
-        tralbum["tracks"] = tralbum["trackinfo"]
-        tralbum["tralbum_artist"] = tralbum["artist"]
-        tralbum["num_downloadable_tracks"] = None
+        if 'trackinfo' not in tralbum:
+            # Artist page.
+            data = re.search(r'\s+data-band="(.*?)"', resp.text)
+            if data is None:
+                raise RuntimeError("Couldn't scrape data-band from " + uri)
+                return None
+            tralbum.update(json.loads(unescape(data.group(1))))
+        else:
+            # Album/track page.
+            data = re.search(r'\s+data-band-follow-info="(.*?)"', resp.text)
+            if data is None:
+                raise RuntimeError("Couldn't scrape data-band-follow-info from " + uri)
+                return None
+            tralbum.update(json.loads(unescape(data.group(1))))
+            data = re.search(r'\s+data-embed="(.*?)"', resp.text)
+            if data is None:
+                raise RuntimeError("Couldn't scrape data-embed from " + uri)
+                return None
+            tralbum.update(json.loads(unescape(data.group(1))))
+            data = re.search(r'application/ld\+json">\s*(.*?)\s*</script', resp.text)
+            if data is not None:
+                tralbum["keywords"] = json.loads(data.group(1))["keywords"]
+            tralbum["tracks"] = tralbum["trackinfo"]
+            tralbum["tralbum_artist"] = tralbum["artist"]
+            tralbum["num_downloadable_tracks"] = None
         return tralbum
 
     def get_collection(self, token=None):

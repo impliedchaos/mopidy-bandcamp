@@ -22,18 +22,6 @@ Mopidy-Bandcamp
 
 This backend this allows searching bandcamp and playing the free 128kbps MP3 streams.
 
-.. raw:: html
-
-    <strike>
-
-Unfortunately, it does **not** support authentication and listening to high quality
-streams in your collection.  I'd love to support that if someone wants to
-reverse-engineer the :code:`X-Bandcamp-DM` and :code:`X-Bandcamp-PoW` headers.
-
-.. raw:: html
-
-    </strike>
-
 Initial support has been added for browsing and playing your bandcamp collection.
 Authentication is a hassle, and described below.  Expect things to be wonky, and
 please create an issue when you encounter things that don't work.  Also this is slow
@@ -70,6 +58,25 @@ This is what we need.  Copy the data (leave out the semi-colon) and add it to yo
 
     [bandcamp]
     identity = 7%09xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx%3D%09%7B%22ex%22%3Ax%2C%22id%22%3Axxxxxxxxxx%7D
+
+
+Usage
+=====
+
+Albums and tracks can be searched for or browsed.  Additionaly, you can force Mopidy-Bandcamp to scrape
+a bandcamp URL for you by just prepending the url with "bandcamp:" and adding it to Mopidy.  For example,
+using mpc on the command line:
+
+.. code:: shell
+
+    $ mpc add "bandcamp:https://louiezong.bandcamp.com/album/jazz"
+
+Would add the bandcamp album to the queue.
+
+Note: Adding an artist by clicking on the artist in a search result or by manually scraping an artist's
+bandcamp page can take a long time depending on the artist.  This is because Mopidy-Bandcamp tries to load
+the entirety of the artist's discography.
+
 
 Configuration
 =============
