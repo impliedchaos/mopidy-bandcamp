@@ -25,6 +25,8 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
 
+    env:
+        TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -35,12 +37,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox pytest pytest-cov flake8
       - run: python -m tox -e ${{ matrix.tox }}
-        env:
-            TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
         if: ${{ ! matrix.coverage }}
       - run: python -m tox -e ${{ matrix.tox }} -- --cov-report=xml
-        env:
-            TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
         if: ${{ matrix.coverage }}
       - uses: codecov/codecov-action@v1
         if: ${{ matrix.coverage }}
