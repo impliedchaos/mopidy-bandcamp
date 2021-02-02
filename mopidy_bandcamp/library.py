@@ -187,6 +187,8 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             genre = ""
             if "tags" in resp:
                 genre = "; ".join([t["name"] for t in resp["tags"]])
+            elif "keywords" in resp:
+                genre = "; ".join(resp["keywords"].split(", "))
             artref = Artist(
                 uri=f"bandcamp:artist:{artist}",
                 name=resp["tralbum_artist"],
@@ -252,6 +254,82 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                                 f"bandcamp:track:{disc['band_id']}-0-{disc['item_id']}"
                             )
                         )
+        elif re.match(r"^https?", func, re.I):
+            url = uri[9:]
+            try:
+                resp = self.backend.bandcamp.scrape(url)
+                if 'tracks' not in resp:
+                    return(self.lookup(f"bandcamp:artist:{resp['id']}"))
+                else:
+                    my = ""
+                    if 'is_purchased' in resp and resp['is_purchased']:
+                        my = "my"
+                    artist = resp['band_id']
+                    album = 0
+                    if resp['item_type'] == 'album':
+                        album = resp['id']
+                    elif 'current' in resp and 'album_id' in resp["current"]:
+                        album = resp["current"]["album_id"]
+                    year = "0000"
+                    if (
+                        "album_release_date" in resp and resp["album_release_date"] is not None
+                    ):
+                        year = resp["album_release_date"].split(" ")[2]
+                    elif "current" in resp and "release_date" in resp["current"] and resp["current"]["release_date"] is not None:
+                        year = resp["current"]["release_date"].split(" ")[2]
+                    comment = "URL: " + url
+                    if "art_id" in resp:
+                        self.images[f"{artist}-{album}"] = f"a{resp['art_id']:010d}"
+                    genre = ""
+                    if "keywords" in resp:
+                        genre = "; ".join(resp["keywords"].split(", "))
+                    artref = Artist(
+                        uri=f"bandcamp:artist:{artist}",
+                        name=resp["tralbum_artist"],
+                        sortname=resp["tralbum_artist"],
+                        musicbrainz_id="",
+                    )
+                    albref = None
+                    if "album_title" in resp:
+                        albref = Album(
+                            uri=f"bandcamp:{my}album:{artist}-{album}",
+                            name=resp["album_title"],
+                            artists=[artref],
+                            num_tracks=resp["num_downloadable_tracks"],
+                            num_discs=None,
+                            date=year,
+                            musicbrainz_id="",
+                        )
+                    for track in resp["tracks"]:
+                        if "file" in track:
+                            trref = Track(
+                                uri=f"bandcamp:{my}track:{artist}-{album}-{track['track_id']}",
+                                name=track["title"],
+                                artists=[artref],
+                                album=albref,
+                                composers=[],
+                                performers=[],
+                                genre=genre,
+                                track_no=track["track_num"],
+                                disc_no=None,
+                                date=year,
+                                length=int(track["duration"] * 1000)
+                                if track["duration"]
+                                else None,
+                                bitrate=320 if "mp3-v0" in track["file"] else 128,
+                                comment=comment,
+                                musicbrainz_id="",
+                                last_modified=None,
+                            )
+                            ret.append(trref)
+                            self.tracks[f"{bcId}-{track['track_id']}"] = trref
+                            if "art_id" in resp:
+                                self.images[
+                                    f"{artist}-{album}-{track['track_id']}"
+                                ] = f"a{resp['art_id']:010d}"
+                    logger.debug("Bandcamp returned %d tracks in lookup", len(ret))
+            except Exception:
+                logger.error('Bandcamp failed to scrape "%s"', url)
         return ret
 
     def search(self, query=None, uris=None, exact=False):
