@@ -36,7 +36,11 @@ jobs:
           pip install tox pytest pytest-cov flake8
       - run: python -m tox -e ${{ matrix.tox }}
         if: ${{ ! matrix.coverage }}
+        env:
+            TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
       - run: python -m tox -e ${{ matrix.tox }} -- --cov-report=xml
         if: ${{ matrix.coverage }}
+        env:
+            TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
       - uses: codecov/codecov-action@v1
         if: ${{ matrix.coverage }}
