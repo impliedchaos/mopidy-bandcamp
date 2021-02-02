@@ -171,6 +171,7 @@ class ExtensionTest(unittest.TestCase):
     def test_auth(self):
         cfg = ExtensionTest.get_config()
         cfg["bandcamp"]["identity"] = os.environ.get("TEST_BANDCAMP_ID")
+        assert cfg["bandcamp"]["identity"].startswith("7%09")
         backend = backend_lib.BandcampBackend(cfg, None)
         root = backend.library.browse("bandcamp:browse")
         assert len(root) == 3
