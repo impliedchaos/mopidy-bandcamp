@@ -146,7 +146,9 @@ class ExtensionTest(unittest.TestCase):
         assert uri.startswith("http")
         uri = backend.playback.translate_uri("chewbacca")
         assert uri is None
-        uri = backend.playback.translate_uri("bandcamp:track:chewbacca")
+        uri = backend.playback.translate_uri("bandcamp:mytrack:3053572798-2944001033-3439398039")
+        assert uri is None
+        uri = backend.playback.translate_uri("bandcamp:track:0-0-0")
         assert uri is None
 
     def test_other(self):
@@ -167,16 +169,19 @@ class ExtensionTest(unittest.TestCase):
         )
         root = backend.library.browse("bandcamp:browse")
         assert root == []
+        root = backend.library.browse("bandcamp:collection:0:0:a::")
+        assert root == []
 
     def test_auth(self):
         cfg = ExtensionTest.get_config()
+        cfg["bandcamp"]["collection_items"] = 2
         cfg["bandcamp"]["identity"] = os.environ.get("TEST_BANDCAMP_ID")
         if cfg["bandcamp"]["identity"] is not None:
             backend = backend_lib.BandcampBackend(cfg, None)
             root = backend.library.browse("bandcamp:browse")
             assert len(root) == 3
             col = backend.library.browse("bandcamp:collection")
-            assert len(col) > 1
+            assert len(col) == 3
             alb = backend.library.browse(col[0].uri)
             assert len(alb) > 1
             # Track we own
@@ -189,6 +194,8 @@ class ExtensionTest(unittest.TestCase):
             assert isinstance(track[0], Track)
             uri = backend.playback.translate_uri("bandcamp:mytrack:2937093478-0-1532026871")
             assert uri.startswith("http")
+            uri = backend.playback.translate_uri("bandcamp:mytrack:nope-0-notgonnawork")
+            assert uri is None
 
     def test_scrape(self):
         cfg = ExtensionTest.get_config()
