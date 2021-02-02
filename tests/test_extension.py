@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest import mock
 
@@ -11,7 +12,6 @@ class ExtensionTest(unittest.TestCase):
     def get_config():
         config = {}
         config["enabled"] = True
-        config["art_url_as_comment"] = False
         config["discover_pages"] = 1
         config["discover_genres"] = [
             "All",
@@ -50,6 +50,8 @@ class ExtensionTest(unittest.TestCase):
             "Tokyo, Japan",
         ]
         config["image_sizes"] = ["10", "5", "2"]
+        config["identity"] = ""
+        config["collection_items"] = 50
         return {"bandcamp": config, "proxy": {}}
 
     def test_get_default_config(self):
@@ -65,11 +67,12 @@ class ExtensionTest(unittest.TestCase):
         schema = ext.get_config_schema()
 
         assert "enabled" in schema
-        assert "art_url_as_comment" in schema
         assert "discover_pages" in schema
         assert "discover_genres" in schema
         assert "discover_tags" in schema
         assert "image_sizes" in schema
+        assert "identity" in schema
+        assert "collection_items" in schema
 
     def test_get_backend_classes(self):
         registry = mock.Mock()
@@ -164,3 +167,25 @@ class ExtensionTest(unittest.TestCase):
         )
         root = backend.library.browse("bandcamp:browse")
         assert root == []
+
+    def test_auth(self):
+        cfg = ExtensionTest.get_config()
+        cfg["bandcamp"]["identity"] = os.environ.get("TEST_BANDCAMP_ID")
+        assert cfg["bandcamp"]["identity"].startswith("7%09")
+        backend = backend_lib.BandcampBackend(cfg, None)
+        root = backend.library.browse("bandcamp:browse")
+        assert len(root) == 3
+        col = backend.library.browse("bandcamp:collection")
+        assert len(col) > 1
+        alb = backend.library.browse(col[0].uri)
+        assert len(alb) > 1
+        # Track we own
+        track = backend.library.lookup("bandcamp:mytrack:2937093478-0-4173304455")
+        assert isinstance(track[0], Track)
+        uri = backend.playback.translate_uri("bandcamp:mytrack:2937093478-0-4173304455")
+        assert uri.startswith("http")
+        # Free track we don't own
+        track = backend.library.lookup("bandcamp:mytrack:2937093478-0-1532026871")
+        assert isinstance(track[0], Track)
+        uri = backend.playback.translate_uri("bandcamp:mytrack:2937093478-0-1532026871")
+        assert uri.startswith("http")

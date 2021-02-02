@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+- added support for auth via cookie
+- added support for browsing collection
+- removed "art_url_as_comment" config option
+
 v1.0.1
 ------
 
