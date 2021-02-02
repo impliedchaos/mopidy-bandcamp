@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-        TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
+      TEST_BANDCAMP_ID: ${{ secrets.BANDCAMP_IDENTITY }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
