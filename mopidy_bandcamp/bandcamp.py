@@ -54,6 +54,7 @@ class BandcampClient:
     def _get(self, *args, **kwargs):
         headers = {"User-Agent": self.ua_str}
         resp = requests.get(*args, **kwargs, headers=headers, proxies=self.proxy)
+        resp.raise_for_status()
         js = resp.json()
         if "error" in js:
             raise RuntimeError(js["error_message"])
@@ -62,6 +63,7 @@ class BandcampClient:
     def _post(self, *args, **kwargs):
         headers = {"User-Agent": self.ua_str}
         resp = requests.post(*args, **kwargs, headers=headers, proxies=self.proxy)
+        resp.raise_for_status()
         js = resp.json()
         if "error" in js:
             raise RuntimeError(js["error_message"])
@@ -72,6 +74,7 @@ class BandcampClient:
         if self.identity:
             headers["Cookie"] = f"identity={self.identity}"
         resp = requests.get(uri, headers=headers, proxies=self.proxy)
+        resp.raise_for_status()
         # Build the tralbum data by joining multiple json chunks.
         data = re.search(r'\s+data-tralbum="(.*?)"', resp.text)
         if data is None:
@@ -115,6 +118,7 @@ class BandcampClient:
                 headers=headers,
                 proxies=self.proxy,
             )
+            resp.raise_for_status()
             self.fan_id = resp.json()["fan_id"]
         if token is None:
             token = str(time()) + ":0:a::"
@@ -128,6 +132,7 @@ class BandcampClient:
                 "count": self.collection_items,
             },
         )
+        resp.raise_for_status()
         js = resp.json()
         if "error" in js:
             raise RuntimeError(js["error_message"])
