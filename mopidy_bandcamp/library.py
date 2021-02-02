@@ -15,6 +15,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
         super().__init__(*args, **kwargs)
         self.tracks = {}
         self.images = {}
+        self.scrape_urls = {}
         self.tags = self.backend.config["bandcamp"]["discover_tags"]
         self.genres = self.backend.config["bandcamp"]["discover_genres"]
         self.pages = self.backend.config["bandcamp"]["discover_pages"]
@@ -24,14 +25,51 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             return []
         logger.debug('Bandcamp browse : "%s"', uri)
         if uri == "bandcamp:browse":
+            dirs = []
             if self.pages:
-                dirs = [
+                dirs += [
                     Ref.directory(uri="bandcamp:genres", name="Discover by Genre"),
                     Ref.directory(uri="bandcamp:tags", name="Discover by Tag"),
                 ]
-                return dirs
-            else:
-                return []
+            if self.backend.config["bandcamp"]["identity"]:
+                dirs.append(Ref.directory(uri="bandcamp:collection", name="Collection"))
+            return dirs
+        if uri.startswith("bandcamp:collection"):
+            token = None
+            if uri != "bandcamp:collection":
+                token = uri[20:]
+            out = []
+            try:
+                data = self.backend.bandcamp.get_collection(token=token)
+                for i in data["items"]:
+                    art = f"a{i['art_id']:010d}" if ("art_id" in i) else None
+                    if i["tralbum_type"] == "a":
+                        aId = f"{i['band_id']}-{i['album_id']}"
+                        name = f"{i['band_name']} - {i['album_title']} (Album)"
+                        if art:
+                            self.images[aId] = art
+                        out.append(Ref.album(uri=f"bandcamp:myalbum:{aId}", name=name))
+                        self.scrape_urls[f"bandcamp:myalbum:{aId}"] = i["item_url"]
+                    elif i["tralbum_type"] == "t":
+                        aId = 0
+                        if i["album_id"] is not None:
+                            aId = i["album_id"]
+                        tId = f"{i['band_id']}-{aId}-{i['item_id']}"
+                        name = f"{i['item_title']} (Track)"
+                        if art:
+                            self.images[tId] = art
+                        out.append(Ref.album(uri=f"bandcamp:mytrack:{tId}", name=name))
+                        self.scrape_urls[f"bandcamp:mytrack:{tId}"] = i["item_url"]
+                if data["more_available"]:
+                    out.append(
+                        Ref.directory(
+                            uri="bandcamp:collection:" + data["last_token"],
+                            name="More...",
+                        )
+                    )
+            except Exception:
+                logger.exception("Failed to get collection")
+            return out
         if uri == "bandcamp:genres" or uri == "bandcamp:tags":
             stype = uri.split(":")[1]
             return [
@@ -82,7 +120,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                     )
                 )
             return out
-        if uri.startswith("bandcamp:album:"):
+        elif re.match(r"^bandcamp:(my)?(track|album):", uri):
             tracks = self.lookup(uri)
             return [Ref.track(uri=t.uri, name=t.name) for t in tracks]
 
@@ -108,57 +146,68 @@ class BandcampLibraryProvider(backend.LibraryProvider):
         logger.debug('Bandcamp lookup "%s"', uri)
         _, func, bcId = uri.split(":")
         ret = []
-        if func == "album" or func == "track":
-            if func == "track":
+        if func == "album" or func == "track" or func.startswith("my"):
+            if func == "track" or func == "mytrack":
                 artist, album, song = bcId.split("-")
                 if bcId in self.tracks:
                     return [self.tracks[bcId]]
             else:
                 artist, album = bcId.split("-")
             try:
-                if func == "track":
+                if func.startswith("my") and (uri in self.scrape_urls):
+                    resp = self.backend.bandcamp.scrape(self.scrape_urls[uri])
+                    comment = "URL: " + self.scrape_urls[uri]
+                elif func == "track" or func == "mytrack":
                     resp = self.backend.bandcamp.get_track(artist, song)
                 else:
                     resp = self.backend.bandcamp.get_album(artist, album)
             except Exception:
                 logger.exception('Bandcamp failed to load info for "%s"', uri)
                 return []
+            my = ""
+            if func.startswith("my"):
+                my = "my"
+                # If we haven't already scraped it, we'll need to:
+                if "bandcamp_url" in resp:
+                    url = resp["bandcamp_url"]
+                    resp = self.backend.bandcamp.scrape(url)
+                    comment = "URL: " + url
             dt = datetime.date
             year = "0000"
             if "release_date" in resp and resp["release_date"] is not None:
                 year = dt.fromtimestamp(resp["release_date"]).strftime("%Y")
+            elif (
+                "album_release_date" in resp and resp["album_release_date"] is not None
+            ):
+                year = resp["album_release_date"].split(" ")[2]
             if "bandcamp_url" in resp:
                 comment = "URL: " + resp["bandcamp_url"]
             if "art_id" in resp:
                 self.images[bcId] = f"a{resp['art_id']:010d}"
-                if self.backend.art_comment:
-                    size = self.backend.image_sizes[0]
-                    comment = (
-                        f"https://f4.bcbits.com/img/a{resp['art_id']:010d}_{size}.jpg"
-                    )
             genre = ""
             if "tags" in resp:
                 genre = "; ".join([t["name"] for t in resp["tags"]])
-            comment = ""
             artref = Artist(
                 uri=f"bandcamp:artist:{artist}",
                 name=resp["tralbum_artist"],
                 sortname=resp["tralbum_artist"],
                 musicbrainz_id="",
             )
-            albref = Album(
-                uri=uri,
-                name=resp["album_title"],
-                artists=[artref],
-                num_tracks=resp["num_downloadable_tracks"],
-                num_discs=None,
-                date=year,
-                musicbrainz_id="",
-            )
+            albref = None
+            if "album_title" in resp:
+                albref = Album(
+                    uri=f"bandcamp:{my}album:{artist}-{album}",
+                    name=resp["album_title"],
+                    artists=[artref],
+                    num_tracks=resp["num_downloadable_tracks"],
+                    num_discs=None,
+                    date=year,
+                    musicbrainz_id="",
+                )
             for track in resp["tracks"]:
-                if track["is_streamable"]:
+                if "is_streamable" not in track or track["is_streamable"]:
                     trref = Track(
-                        uri=f"bandcamp:track:{artist}-{album}-{track['track_id']}",
+                        uri=f"bandcamp:{my}track:{artist}-{album}-{track['track_id']}",
                         name=track["title"],
                         artists=[artref],
                         album=albref,
@@ -171,7 +220,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         length=int(track["duration"] * 1000)
                         if track["duration"]
                         else None,
-                        bitrate=128,
+                        bitrate=320 if my == "my" else 128,
                         comment=comment,
                         musicbrainz_id="",
                         last_modified=None,
@@ -249,9 +298,6 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         self.images[
                             f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}"
                         ] = f"a{r['art_id']:010d}"
-                        if self.backend.art_comment:
-                            size = self.backend.image_sizes[0]
-                            comment = f"https://f4.bcbits.com/img/a{r['art_id']:010d}_{size}.jpg"
                     trref = Track(
                         uri=f"bandcamp:track:{r['band_id']}-{r['album_id']}-{r['id']}",
                         name=r["name"],

@@ -22,9 +22,22 @@ Mopidy-Bandcamp
 
 This backend this allows searching bandcamp and playing the free 128kbps MP3 streams.
 
+.. raw:: html
+
+    <strike>
+
 Unfortunately, it does **not** support authentication and listening to high quality
 streams in your collection.  I'd love to support that if someone wants to
 reverse-engineer the :code:`X-Bandcamp-DM` and :code:`X-Bandcamp-PoW` headers.
+
+.. raw:: html
+
+    </strike>
+
+Initial support has been added for browsing and playing your bandcamp collection.
+Authentication is a hassle, and described below.  Expect things to be wonky, and
+please create an issue when you encounter things that don't work.  Also this is slow
+because it requires scraping the bandcamp website instead of using an API.
 
 
 Installation
@@ -35,6 +48,28 @@ Install by running::
     sudo python3 -m pip install Mopidy-Bandcamp
 
 
+Authentication
+==============
+
+Authentication is done by grabbing your :code:`identity` token from the cookies of the
+bandcamp website. Point your browser at https://bandcamp.com, log in if you aren't already,
+and then open up your browser's developer tools (usually by pressing Ctrl-Shift-I or F12).
+Reload the page and you should be able to go to the "Network" tab of developer tools and
+click on the top entry.  You should be able to click on a "Headers" subtab and see the
+Request and Response headers.  Find the "Cookie" request header and look for "identity".
+
+You should see something similar to:
+
+.. code::
+
+    identity=7%09xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx%3D%09%7B%22ex%22%3Ax%2C%22id%22%3Axxxxxxxxxx%7D;
+
+This is what we need.  Copy the data (leave out the semi-colon) and add it to your Mopidy config file like:
+
+.. code::
+
+    [bandcamp]
+    identity = 7%09xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx%3D%09%7B%22ex%22%3Ax%2C%22id%22%3Axxxxxxxxxx%7D
 
 Configuration
 =============
@@ -47,10 +82,11 @@ example:
     discover-tags = French House, Brit Pop, Tokyo, New Wave, Industrial
 
 
+- :code:`identity` - Identity token from your bandcamp cookies to authenticate with Bandcamp.
+- :code:`collection_items` - Number of items (per page) to fetch from your collection (if authenticated).  Default: 50
 - :code:`discover_tags` - List of tags to discover. **You'll really want to change this to any tags that interest you.**
 - :code:`discover_genres` - List of bandcamp's genres to discover.  You'll only want to edit this to remove unwanted genres.
 - :code:`discover_pages` - Number of pages to load in the browse discover sections.  Default: 1
-- :code:`art_url_as_comment` - a hack to set the album art url as the track comment.  Default: false
 - :code:`image_sizes` - a list of ids for image sizes to return to mopidy for album art.  Default: 10, 5, 2 (1200x1200, 700x700, 350x350)
 
 

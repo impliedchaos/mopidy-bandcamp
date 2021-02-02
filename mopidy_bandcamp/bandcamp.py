@@ -1,7 +1,11 @@
+import json
 import mopidy_bandcamp
+import re
 import requests
 
+from html import unescape
 from mopidy import httpclient
+from time import time
 
 
 class BandcampClient:
@@ -43,25 +47,82 @@ class BandcampClient:
         self.ua_str = httpclient.format_user_agent(
             f"{mopidy_bandcamp.Extension.dist_name}/{mopidy_bandcamp.__version__}"
         )
+        self.identity = config["bandcamp"]["identity"]
+        self.collection_items = config["bandcamp"]["collection_items"]
+        self.fan_id = None
 
     def _get(self, *args, **kwargs):
         headers = {"User-Agent": self.ua_str}
         resp = requests.get(*args, **kwargs, headers=headers, proxies=self.proxy)
-        json = resp.json()
-        if "error" in json:
-            raise RuntimeError(json["error_message"])
-        return json
+        js = resp.json()
+        if "error" in js:
+            raise RuntimeError(js["error_message"])
+        return js
 
     def _post(self, *args, **kwargs):
         headers = {"User-Agent": self.ua_str}
         resp = requests.post(*args, **kwargs, headers=headers, proxies=self.proxy)
-        json = resp.json()
-        if "error" in json:
-            raise RuntimeError(json["error_message"])
-        return json
+        js = resp.json()
+        if "error" in js:
+            raise RuntimeError(js["error_message"])
+        return js
+
+    def scrape(self, uri):
+        headers = {"User-Agent": self.ua_str}
+        if self.identity:
+            headers["Cookie"] = f"identity={self.identity}"
+        resp = requests.get(uri, headers=headers, proxies=self.proxy)
+        # Build the tralbum data by joining three separate json chunks.
+        data = re.search(r'\s+data-tralbum="(.*?)"', resp.text)
+        if data is None:
+            raise RuntimeError("Couldn't scrape data-tralbum from " + uri)
+            return None
+        tralbum = json.loads(unescape(data.group(1)))
+        data = re.search(r'\s+data-band-follow-info="(.*?)"', resp.text)
+        if data is None:
+            raise RuntimeError("Couldn't scrape data-band-follow-info from " + uri)
+            return None
+        tralbum.update(json.loads(unescape(data.group(1))))
+        data = re.search(r'\s+data-embed="(.*?)"', resp.text)
+        if data is None:
+            raise RuntimeError("Couldn't scrape data-embed from " + uri)
+            return None
+        tralbum.update(json.loads(unescape(data.group(1))))
+        tralbum["tracks"] = tralbum["trackinfo"]
+        tralbum["tralbum_artist"] = tralbum["artist"]
+        tralbum["num_downloadable_tracks"] = None
+        return tralbum
+
+    def get_collection(self, token=None):
+        if not self.identity:
+            return []
+        headers = {"User-Agent": self.ua_str, "Cookie": f"identity={self.identity}"}
+        if self.fan_id is None:
+            resp = requests.get(
+                self.BASE_URL + "/fan/2/collection_summary",
+                headers=headers,
+                proxies=self.proxy,
+            )
+            self.fan_id = resp.json()["fan_id"]
+        if token is None:
+            token = str(time()) + ":0:a::"
+        resp = requests.post(
+            self.BASE_URL + "/fancollection/1/collection_items",
+            headers=headers,
+            proxies=self.proxy,
+            json={
+                "fan_id": self.fan_id,
+                "older_than_token": token,
+                "count": self.collection_items,
+            },
+        )
+        js = resp.json()
+        if "error" in js:
+            raise RuntimeError(js["error_message"])
+        return js
 
     def get_album(self, artistid, itemid, track=False):
-        json = self._get(
+        js = self._get(
             self.BASE_URL
             + "/mobile/24/tralbum_details?band_id="
             + str(artistid)
@@ -70,21 +131,21 @@ class BandcampClient:
             + "&tralbum_id="
             + str(itemid)
         )
-        return json
+        return js
 
     def get_track(self, artistid, trackid):
         return self.get_album(artistid, trackid, track=True)
 
     def get_artist(self, artistid):
-        json = self._post(
+        js = self._post(
             self.BASE_URL + "/mobile/24/band_details",
             json={"band_id": artistid},
         )
-        return json
+        return js
 
     def search(self, query):
-        json = self._get(f"{self.BASE_URL}/fuzzysearch/1/app_autocomplete?q={query}")
-        return json
+        js = self._get(f"{self.BASE_URL}/fuzzysearch/1/app_autocomplete?q={query}")
+        return js
 
     def discover(self, sort="top", genre="all", tag=None, page=0):
         query = f"{self.BASE_URL}/discover/2/get?s={sort}&l=0&emulate_loc=true&f=all&g={genre}"
@@ -92,5 +153,5 @@ class BandcampClient:
             query += f"&t={tag}"
         if page > 0:
             query += f"&p={page}"
-        json = self._get(query)
-        return json
+        js = self._get(query)
+        return js
