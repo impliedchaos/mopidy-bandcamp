@@ -13,16 +13,24 @@ Mopidy-Bandcamp
     :target: https://github.com/impliedchaos/mopidy-bandcamp/commits/master
     :alt: Latest GitHub Commits
 
+.. image:: https://img.shields.io/github/workflow/status/impliedchaos/mopidy-bandcamp/CI
+    :target: https://github.com/impliedchaos/mopidy-bandcamp/actions
+    :alt: CI build status
+
 .. image:: https://img.shields.io/codecov/c/github/impliedchaos/mopidy-bandcamp
     :target: https://app.codecov.io/gh/impliedchaos/mopidy-bandcamp/
     :alt: Code Coverage
+
+.. image:: https://img.shields.io/badge/PRs-welcome-brightgreen
+    :target: https://https://makeapullrequest.com/
+    :alt: Pull Requests Welcome
 
 `Mopidy <http://www.mopidy.com/>`_ extension for playing music from
 `Bandcamp <http://bandcamp.com/>`_.
 
 This backend this allows searching bandcamp and playing the free 128kbps MP3 streams.
 
-Initial support has been added for browsing and playing your bandcamp collection.
+Initial support has been added (as of v1.1.0) for browsing and playing your bandcamp collection.
 Authentication is a hassle, and described below.  Expect things to be wonky, and
 please create an issue when you encounter things that don't work.  Also this is slow
 because it requires scraping the bandcamp website instead of using an API.
@@ -77,6 +85,22 @@ Note: Adding an artist by clicking on the artist in a search result or by manual
 bandcamp page can take a long time depending on the artist.  This is because Mopidy-Bandcamp tries to load
 the entirety of the artist's discography.
 
+
+Web Client
+----------
+
+As of v1.1.2 a simple webclient has been added to allow for more easily scraping a page. Not by going to
+http://hostname:6680/bandcamp/ and entering in a url (which you can do), but by using the following
+as a URL for a bookmark in your web browser:
+
+.. code::
+
+    javascript:s='http://hostname:6680/bandcamp/';f=document.createElement('form');f.action=s;i=document.createElement('input');i.type='hidden';i.name='url';i.value=window.location.href;f.appendChild(i);document.body.appendChild(f);f.submit();
+
+Note: Replace *hostname* and *6680* with your mopidy server's hostname and configured HTTP port.
+
+Now when you're browsing bandcamp you can simply click that bookmark to add the current page to Mopidy.
+(This works in Chrome and Firefox.  I haven't bothered checking anything else.)
 
 Configuration
 =============

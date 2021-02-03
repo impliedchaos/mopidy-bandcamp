@@ -80,7 +80,7 @@ class BandcampClient:
         if data is None:
             raise RuntimeError("Couldn't scrape data-tralbum from " + uri)
         tralbum = json.loads(unescape(data.group(1)))
-        if 'trackinfo' not in tralbum:
+        if "trackinfo" not in tralbum:
             # Artist page.
             data = re.search(r'\s+data-band="(.*?)"', resp.text)
             if data is None:

@@ -146,7 +146,9 @@ class ExtensionTest(unittest.TestCase):
         assert uri.startswith("http")
         uri = backend.playback.translate_uri("chewbacca")
         assert uri is None
-        uri = backend.playback.translate_uri("bandcamp:mytrack:3053572798-2944001033-3439398039")
+        uri = backend.playback.translate_uri(
+            "bandcamp:mytrack:3053572798-2944001033-3439398039"
+        )
         assert uri is None
         uri = backend.playback.translate_uri("bandcamp:track:0-0-0")
         assert uri is None
@@ -187,12 +189,16 @@ class ExtensionTest(unittest.TestCase):
             # Track we own
             track = backend.library.lookup("bandcamp:mytrack:2937093478-0-4173304455")
             assert isinstance(track[0], Track)
-            uri = backend.playback.translate_uri("bandcamp:mytrack:2937093478-0-4173304455")
+            uri = backend.playback.translate_uri(
+                "bandcamp:mytrack:2937093478-0-4173304455"
+            )
             assert uri.startswith("http")
             # Free track we don't own
             track = backend.library.lookup("bandcamp:mytrack:2937093478-0-1532026871")
             assert isinstance(track[0], Track)
-            uri = backend.playback.translate_uri("bandcamp:mytrack:2937093478-0-1532026871")
+            uri = backend.playback.translate_uri(
+                "bandcamp:mytrack:2937093478-0-1532026871"
+            )
             assert uri.startswith("http")
             uri = backend.playback.translate_uri("bandcamp:mytrack:nope-0-notgonnawork")
             assert uri is None
@@ -206,7 +212,11 @@ class ExtensionTest(unittest.TestCase):
         assert nothing == []
         artist = backend.library.lookup("bandcamp:https://kitschclub.bandcamp.com/")
         assert len(artist) > 1
-        album = backend.library.lookup("bandcamp:https://louiezong.bandcamp.com/album/jazz")
+        album = backend.library.lookup(
+            "bandcamp:https://louiezong.bandcamp.com/album/jazz"
+        )
         assert len(album) > 1
-        track = backend.library.lookup("bandcamp:https://louiezong.bandcamp.com/track/minty-fresh")
+        track = backend.library.lookup(
+            "bandcamp:https://louiezong.bandcamp.com/track/minty-fresh"
+        )
         assert isinstance(track[0], Track)
