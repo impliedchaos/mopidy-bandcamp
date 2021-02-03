@@ -42,8 +42,12 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             try:
                 data = self.backend.bandcamp.get_collection(token=token)
                 for i in data["items"]:
-                    if 'item_art' in i and 'art_id' in i['item_art']:
-                        art = f"a{i['item_art']['art_id']:010d}" if i["item_art"]["art_id"] else None
+                    if "item_art" in i and "art_id" in i["item_art"]:
+                        art = (
+                            f"a{i['item_art']['art_id']:010d}"
+                            if i["item_art"]["art_id"]
+                            else None
+                        )
                     if i["tralbum_type"] == "a":
                         aId = f"{i['band_id']}-{i['album_id']}"
                         name = f"{i['band_name']} - {i['album_title']} (Album)"
@@ -259,24 +263,29 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             url = uri[9:]
             try:
                 resp = self.backend.bandcamp.scrape(url)
-                if 'tracks' not in resp:
-                    return(self.lookup(f"bandcamp:artist:{resp['id']}"))
+                if "tracks" not in resp:
+                    return self.lookup(f"bandcamp:artist:{resp['id']}")
                 else:
                     my = ""
-                    if 'is_purchased' in resp and resp['is_purchased']:
+                    if "is_purchased" in resp and resp["is_purchased"]:
                         my = "my"
-                    artist = resp['band_id']
+                    artist = resp["band_id"]
                     album = 0
-                    if resp['item_type'] == 'album':
-                        album = resp['id']
-                    elif 'current' in resp and 'album_id' in resp["current"]:
+                    if resp["item_type"] == "album":
+                        album = resp["id"]
+                    elif "current" in resp and "album_id" in resp["current"]:
                         album = resp["current"]["album_id"]
                     year = "0000"
                     if (
-                        "album_release_date" in resp and resp["album_release_date"] is not None
+                        "album_release_date" in resp
+                        and resp["album_release_date"] is not None
                     ):
                         year = resp["album_release_date"].split(" ")[2]
-                    elif "current" in resp and "release_date" in resp["current"] and resp["current"]["release_date"] is not None:
+                    elif (
+                        "current" in resp
+                        and "release_date" in resp["current"]
+                        and resp["current"]["release_date"] is not None
+                    ):
                         year = resp["current"]["release_date"].split(" ")[2]
                     comment = "URL: " + url
                     if "art_id" in resp:

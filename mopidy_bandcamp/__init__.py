@@ -3,7 +3,7 @@ import os
 
 from mopidy import config, ext
 
-__version__ = "1.1.1"
+__version__ = "1.1.2"
 
 logger = logging.getLogger(__name__)
 
@@ -28,22 +28,13 @@ class Extension(ext.Extension):
         schema["identity"] = config.String(optional=True)
         return schema
 
-    def get_command(self):
-        #       from .commands import BandcampCommand
-        #       return BandcampCommand()
-        pass
-
-    def validate_environment(self):
-        # Any manual checks of the environment to fail early.
-        # Dependencies described by setup.py are checked by Mopidy, so you
-        # should not check their presence here.
-        pass
-
     def setup(self, registry):
-        # You will typically only do one of the following things in a
-        # single extension.
-
-        # Register a backend
         from .backend import BandcampBackend
 
         registry.add("backend", BandcampBackend)
+        registry.add("http:app", {"name": self.ext_name, "factory": self.factory})
+
+    def factory(self, config, core):
+        from .web import WebHandler
+
+        return [(r"/", WebHandler, {"config": config, "core": core})]
