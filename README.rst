@@ -47,20 +47,26 @@ Install by running::
 Authentication
 ==============
 
-Authentication is done by grabbing your :code:`identity` token from the cookies of the
-bandcamp website. Point your browser at https://bandcamp.com, log in if you aren't already,
-and then open up your browser's developer tools (usually by pressing Ctrl-Shift-I or F12).
-Reload the page and you should be able to go to the "Network" tab of developer tools and
-click on the top entry.  You should be able to click on a "Headers" subtab and see the
-Request and Response headers.  Find the "Cookie" request header and look for "identity".
+If you wish to browse/play music in your collection, then you'll need to authenticate to bandcamp.com.
 
-You should see something similar to:
+Authentication is done by grabbing your :code:`identity` token from the cookies of the
+bandcamp website. Point your browser at https://bandcamp.com and log in if you aren't already.
+
+For chrome you can simply go to 
+`chrome://settings/cookies/detail?site=bandcamp.com <chrome://settings/cookies/detail?site=bandcamp.com>`_
+to see the cookies for bandcamp.com.  Click on "identity" and copy the data listed under "Content".
+
+For Firefox and most other browsers, open up the browser's developer tools (usually by pressing Ctrl-Shift-I or F12).
+When the tools pop up, navigate to the "Storage" tab, and then select "Cookies" to view
+the site's cookies. Copy the value from the "identity" cookie.
+
+It should look something like this:
 
 .. code::
 
-    identity=7%09xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx%3D%09%7B%22ex%22%3Ax%2C%22id%22%3Axxxxxxxxxx%7D;
+    7%09xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx%3D%09%7B%22ex%22%3Ax%2C%22id%22%3Axxxxxxxxxx%7D
 
-This is what we need.  Copy the data (leave out the semi-colon) and add it to your Mopidy config file like:
+Now add it to your Mopidy config file like so:
 
 .. code::
 
