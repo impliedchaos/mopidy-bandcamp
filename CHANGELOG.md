@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+v1.1.2
+------
+
+- added webclient for adding bandcamp urls from the browser
+- small bug fixes, added edge test cases
+
 v1.1.1
 ------
 
