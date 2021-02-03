@@ -28,7 +28,7 @@ Mopidy-Bandcamp
 `Mopidy <http://www.mopidy.com/>`_ extension for playing music from
 `Bandcamp <http://bandcamp.com/>`_.
 
-This backend this allows searching bandcamp and playing the free 128kbps MP3 streams.
+This backend allows searching bandcamp and playing the free 128kbps MP3 streams.
 
 Initial support has been added (as of v1.1.0) for browsing and playing your bandcamp collection.
 Authentication is a hassle, and described below.  Expect things to be wonky, and
