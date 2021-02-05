@@ -1,29 +1,30 @@
 Mopidy-Bandcamp
 ****************
 
-.. image:: https://img.shields.io/pypi/v/Mopidy-Bandcamp
+.. image:: https://img.shields.io/pypi/v/Mopidy-Bandcamp?logo=PyPI
     :target: https://pypi.org/project/Mopidy-Bandcamp
     :alt: Latest PyPI version
 
-.. image:: https://img.shields.io/github/v/release/impliedchaos/mopidy-bandcamp
+.. image:: https://img.shields.io/github/v/release/impliedchaos/mopidy-bandcamp?logo=GitHub
     :target: https://github.com/impliedchaos/mopidy-bandcamp/releases
     :alt: Latest GitHub release
 
-.. image:: https://img.shields.io/github/commits-since/impliedchaos/mopidy-bandcamp/latest
+.. image:: https://img.shields.io/github/commits-since/impliedchaos/mopidy-bandcamp/latest?logo=GitHub
     :target: https://github.com/impliedchaos/mopidy-bandcamp/commits/master
     :alt: Latest GitHub Commits
 
-.. image:: https://img.shields.io/github/workflow/status/impliedchaos/mopidy-bandcamp/CI
+.. image:: https://img.shields.io/github/workflow/status/impliedchaos/mopidy-bandcamp/CI?logo=GitHub&label=CI%20build
     :target: https://github.com/impliedchaos/mopidy-bandcamp/actions
     :alt: CI build status
 
-.. image:: https://img.shields.io/codecov/c/github/impliedchaos/mopidy-bandcamp
+.. image:: https://img.shields.io/codecov/c/github/impliedchaos/mopidy-bandcamp?logo=Codecov&label=Test%20coverage
     :target: https://app.codecov.io/gh/impliedchaos/mopidy-bandcamp/
     :alt: Code Coverage
 
 .. image:: https://img.shields.io/badge/PRs-welcome-brightgreen
-    :target: https://https://makeapullrequest.com/
+    :target: https://makeapullrequest.com/
     :alt: Pull Requests Welcome
+
 
 `Mopidy <http://www.mopidy.com/>`_ extension for playing music from
 `Bandcamp <http://bandcamp.com/>`_.
