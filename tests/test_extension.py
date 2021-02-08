@@ -147,7 +147,7 @@ class ExtensionTest(unittest.TestCase):
         img = backend.library.get_images(
             ["bandcamp:browse"]
         )
-        assert img["bandcamp:browse"] == []
+        assert isinstance(img["bandcamp:browse"][0], Image)
         uri = backend.playback.translate_uri(album[0].uri)
         assert uri.startswith("http")
         uri = backend.playback.translate_uri("chewbacca")
