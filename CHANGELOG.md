@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+v1.1.3
+------
+
+- added dummy images for browse directories.
+- better handling of weird calls to library.lookup by front-ends like Iris
+- fixed bug in scrape function for unauthenticated accounts
+
 v1.1.2
 ------
 
