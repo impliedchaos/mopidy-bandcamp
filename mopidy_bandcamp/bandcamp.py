@@ -97,8 +97,17 @@ class BandcampClient:
                 raise RuntimeError("Couldn't scrape data-embed from " + uri)
             tralbum.update(json.loads(unescape(data.group(1))))
             data = re.search(r'application/ld\+json">\s*(.*?)\s*</script', resp.text)
+            if "band_id" not in tralbum:
+                tralbum["band_id"] = None
             if data is not None:
-                tralbum["keywords"] = json.loads(data.group(1))["keywords"]
+                ld = json.loads(data.group(1))
+                tralbum["keywords"] = ld["keywords"]
+                if tralbum["band_id"] is None:
+                    if "byArtist" in ld and "additionalProperty" in ld["byArtist"]:
+                        for ap in ld["byArtist"]["additionalProperty"]:
+                            if ap["name"] == "band_id":
+                                tralbum["band_id"] = ap["value"]
+                                break
             tralbum["tracks"] = tralbum["trackinfo"]
             tralbum["tralbum_artist"] = tralbum["artist"]
             tralbum["num_downloadable_tracks"] = None

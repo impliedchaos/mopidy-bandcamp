@@ -149,32 +149,22 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         else:
                             ret[uri].append(Image(uri=img + f"_{s}.jpg"))
             else:
+                name = ""
                 if len(component) == 3:
                     name = component[2]
-                    m = hashlib.md5(name.encode("utf-8")).hexdigest()
-                    for s in self.backend.image_sizes:
-                        if s in self.backend.bandcamp.IMAGE_SIZE:
-                            d = self.backend.bandcamp.IMAGE_SIZE[s]
-                            ret[uri].append(
-                                Image(
-                                    uri=f"https://dummyimage.com/{d[0]}x{d[1]}/{m[0:3]}/{m[3:6]}&text={quote(name)}",
-                                    width=d[0],
-                                    height=d[1],
-                                )
-                            )
                 elif len(component) == 2:
                     name = component[1] if component[1] != "browse" else "bandcamp"
-                    m = hashlib.md5(name.encode("utf-8")).hexdigest()
-                    for s in self.backend.image_sizes:
-                        if s in self.backend.bandcamp.IMAGE_SIZE:
-                            d = self.backend.bandcamp.IMAGE_SIZE[s]
-                            ret[uri].append(
-                                Image(
-                                    uri=f"https://dummyimage.com/{d[0]}x{d[1]}/{m[0:3]}/{m[3:6]}&text={quote(name)}",
-                                    width=d[0],
-                                    height=d[1],
-                                )
+                m = hashlib.md5(name.encode("utf-8")).hexdigest()
+                for s in self.backend.image_sizes:
+                    if s in self.backend.bandcamp.IMAGE_SIZE:
+                        d = self.backend.bandcamp.IMAGE_SIZE[s]
+                        ret[uri].append(
+                            Image(
+                                uri=f"https://dummyimage.com/{d[0]}x{d[1]}/{m[0:3]}/{m[3:6]}&text={quote(name)}",
+                                width=d[0],
+                                height=d[1],
                             )
+                        )
         return ret
 
     def lookup(self, uri):
@@ -371,7 +361,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                                 ] = f"a{resp['art_id']:010d}"
                     logger.debug("Bandcamp returned %d tracks in lookup", len(ret))
             except Exception:
-                logger.error('Bandcamp failed to scrape "%s"', url)
+                logger.exception('Bandcamp failed to scrape "%s"', url)
         return ret
 
     def search(self, query=None, uris=None, exact=False):

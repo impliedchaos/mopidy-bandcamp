@@ -145,9 +145,10 @@ class ExtensionTest(unittest.TestCase):
             img["bandcamp:track:4274249518-4240848302-55800693"][0], Image
         )
         img = backend.library.get_images(
-            ["bandcamp:browse"]
+            ["bandcamp:browse", "bandcamp:tag:outrun"]
         )
         assert isinstance(img["bandcamp:browse"][0], Image)
+        assert isinstance(img["bandcamp:tag:outrun"][0], Image)
         uri = backend.playback.translate_uri(album[0].uri)
         assert uri.startswith("http")
         uri = backend.playback.translate_uri("chewbacca")
@@ -211,8 +212,23 @@ class ExtensionTest(unittest.TestCase):
 
     def test_scrape(self):
         cfg = ExtensionTest.get_config()
+        backend = backend_lib.BandcampBackend(cfg, None)
+        nothing = backend.library.lookup("bandcamp:https://bandcamp.com/")
+        assert nothing == []
+        artist = backend.library.lookup("bandcamp:https://kitschclub.bandcamp.com/")
+        assert len(artist) > 1
+        album = backend.library.lookup(
+            "bandcamp:https://louiezong.bandcamp.com/album/jazz"
+        )
+        assert len(album) > 1
+        track = backend.library.lookup(
+            "bandcamp:https://louiezong.bandcamp.com/track/minty-fresh"
+        )
+        assert isinstance(track[0], Track)
+
+    def test_scrape_auth(self):
+        cfg = ExtensionTest.get_config()
         cfg["bandcamp"]["identity"] = os.environ.get("TEST_BANDCAMP_ID")
-        assert cfg["bandcamp"]["identity"].startswith("7%09")
         backend = backend_lib.BandcampBackend(cfg, None)
         nothing = backend.library.lookup("bandcamp:https://bandcamp.com/")
         assert nothing == []
