@@ -1,4 +1,5 @@
 import datetime
+import hashlib
 import re
 
 from mopidy import backend
@@ -133,22 +134,53 @@ class BandcampLibraryProvider(backend.LibraryProvider):
         ret = {}
         for uri in uris:
             ret[uri] = []
-            bcId = uri.split(":")[2]
-            if bcId in self.images:
-                i = self.images[bcId]
-                img = f"https://f4.bcbits.com/img/{i}"
-                for s in self.backend.image_sizes:
-                    if s in self.backend.bandcamp.IMAGE_SIZE:
-                        d = self.backend.bandcamp.IMAGE_SIZE[s]
-                        ret[uri].append(
-                            Image(uri=img + f"_{s}.jpg", width=d[0], height=d[1])
-                        )
-                    else:
-                        ret[uri].append(Image(uri=img + f"_{s}.jpg"))
+            component = uri.split(":")
+            if re.match(r'^(my)?(track|album|artist)', component[1], re.I):
+                bcId = uri.split(":")[2]
+                if bcId in self.images:
+                    i = self.images[bcId]
+                    img = f"https://f4.bcbits.com/img/{i}"
+                    for s in self.backend.image_sizes:
+                        if s in self.backend.bandcamp.IMAGE_SIZE:
+                            d = self.backend.bandcamp.IMAGE_SIZE[s]
+                            ret[uri].append(
+                                Image(uri=img + f"_{s}.jpg", width=d[0], height=d[1])
+                            )
+                        else:
+                            ret[uri].append(Image(uri=img + f"_{s}.jpg"))
+            else:
+                if len(component) == 3:
+                    name = component[2]
+                    m = hashlib.md5(name.encode("utf-8")).hexdigest()
+                    for s in self.backend.image_sizes:
+                        if s in self.backend.bandcamp.IMAGE_SIZE:
+                            d = self.backend.bandcamp.IMAGE_SIZE[s]
+                            ret[uri].append(
+                                Image(
+                                    uri=f"https://dummyimage.com/{d[0]}x{d[1]}/{m[0:3]}/{m[3:6]}&text={quote(name)}",
+                                    width=d[0],
+                                    height=d[1],
+                                )
+                            )
+                elif len(component) == 2:
+                    name = component[1] if component[1] != "browse" else "bandcamp"
+                    m = hashlib.md5(name.encode("utf-8")).hexdigest()
+                    for s in self.backend.image_sizes:
+                        if s in self.backend.bandcamp.IMAGE_SIZE:
+                            d = self.backend.bandcamp.IMAGE_SIZE[s]
+                            ret[uri].append(
+                                Image(
+                                    uri=f"https://dummyimage.com/{d[0]}x{d[1]}/{m[0:3]}/{m[3:6]}&text={quote(name)}",
+                                    width=d[0],
+                                    height=d[1],
+                                )
+                            )
         return ret
 
     def lookup(self, uri):
         logger.debug('Bandcamp lookup "%s"', uri)
+        if len(uri.split(":")) != 3:
+            return []
         _, func, bcId = uri.split(":")
         ret = []
         if func == "album" or func == "track" or func.startswith("my"):
