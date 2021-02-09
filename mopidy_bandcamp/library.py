@@ -135,7 +135,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
         for uri in uris:
             ret[uri] = []
             component = uri.split(":")
-            if re.match(r'^(my)?(track|album|artist)', component[1], re.I):
+            if re.match(r"^(my)?(track|album|artist)", component[1], re.I):
                 bcId = uri.split(":")[2]
                 if bcId in self.images:
                     i = self.images[bcId]

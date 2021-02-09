@@ -144,9 +144,7 @@ class ExtensionTest(unittest.TestCase):
         assert isinstance(
             img["bandcamp:track:4274249518-4240848302-55800693"][0], Image
         )
-        img = backend.library.get_images(
-            ["bandcamp:browse", "bandcamp:tag:outrun"]
-        )
+        img = backend.library.get_images(["bandcamp:browse", "bandcamp:tag:outrun"])
         assert isinstance(img["bandcamp:browse"][0], Image)
         assert isinstance(img["bandcamp:tag:outrun"][0], Image)
         uri = backend.playback.translate_uri(album[0].uri)
