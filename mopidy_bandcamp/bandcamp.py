@@ -84,17 +84,23 @@ class BandcampClient:
             # Artist page.
             data = re.search(r'\s+data-band="(.*?)"', resp.text)
             if data is None:
-                raise RuntimeError("Couldn't scrape data-band from " + uri)
+                raise RuntimeError(
+                    "Couldn't scrape data-band from " + uri
+                )  # pragma: no cover
             tralbum.update(json.loads(unescape(data.group(1))))
         else:
             # Album/track page.
             data = re.search(r'\s+data-band-follow-info="(.*?)"', resp.text)
             if data is None:
-                raise RuntimeError("Couldn't scrape data-band-follow-info from " + uri)
+                raise RuntimeError(
+                    "Couldn't scrape data-band-follow-info from " + uri
+                )  # pragma: no cover
             tralbum.update(json.loads(unescape(data.group(1))))
             data = re.search(r'\s+data-embed="(.*?)"', resp.text)
             if data is None:
-                raise RuntimeError("Couldn't scrape data-embed from " + uri)
+                raise RuntimeError(
+                    "Couldn't scrape data-embed from " + uri
+                )  # pragma: no cover
             tralbum.update(json.loads(unescape(data.group(1))))
             data = re.search(r'application/ld\+json">\s*(.*?)\s*</script', resp.text)
             if "band_id" not in tralbum:
@@ -140,7 +146,7 @@ class BandcampClient:
         resp.raise_for_status()
         js = resp.json()
         if "error" in js:
-            raise RuntimeError(js["error_message"])
+            raise RuntimeError(js["error_message"])  # pragma: no cover
         return js
 
     def get_album(self, artistid, itemid, track=False):

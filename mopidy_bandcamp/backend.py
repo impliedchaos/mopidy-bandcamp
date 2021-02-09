@@ -61,7 +61,7 @@ class BandcampPlaybackProvider(backend.PlaybackProvider):
                                     tr["file"]["mp3-128"],
                                 )
                                 return tr["file"]["mp3-128"]
-                logger.error("Track not found. %s", uri)
+                logger.error("Track not found. %s", uri)  # pragma: no cover
             else:
                 resp = self.backend.bandcamp.get_track(artist, track)
                 if "tracks" in resp:
@@ -72,7 +72,7 @@ class BandcampPlaybackProvider(backend.PlaybackProvider):
                             tr["streaming_url"]["mp3-128"],
                         )
                         return tr["streaming_url"]["mp3-128"]
-                logger.error("Track not found. %s", uri)
+                logger.error("Track not found. %s", uri)  # pragma: no cover
         except Exception as e:
             logger.error('translate_uri error "%s"', str(e))
         return None
