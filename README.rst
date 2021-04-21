@@ -35,6 +35,7 @@ Initial support has been added (as of v1.1.0) for browsing and playing your band
 Authentication is a hassle, and described below.  Expect things to be wonky, and
 please create an issue when you encounter things that don't work.  Also this is slow
 because it requires scraping the bandcamp website instead of using an API.
+(This plugin will attempt to play the higher quality mp3-v0 streams of songs in your collection.)
 
 
 Installation
