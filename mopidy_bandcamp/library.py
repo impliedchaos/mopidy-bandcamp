@@ -215,7 +215,10 @@ class BandcampLibraryProvider(backend.LibraryProvider):
             if "tags" in resp:
                 genre = "; ".join([t["name"] for t in resp["tags"]])
             elif "keywords" in resp:
-                genre = "; ".join(resp["keywords"].split(", "))
+                if type(resp["keywords"]) is list:
+                    genre = "; ".join(resp["keywords"])
+                else:
+                    genre = "; ".join(resp["keywords"].split(", "))
             artref = Artist(
                 uri=f"bandcamp:artist:{artist}",
                 name=resp["tralbum_artist"],
@@ -314,7 +317,10 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         self.images[f"{artist}-{album}"] = f"a{resp['art_id']:010d}"
                     genre = ""
                     if "keywords" in resp:
-                        genre = "; ".join(resp["keywords"].split(", "))
+                        if type(resp["keywords"]) is list:
+                            genre = "; ".join(resp["keywords"])
+                        else:
+                            genre = "; ".join(resp["keywords"].split(", "))
                     artref = Artist(
                         uri=f"bandcamp:artist:{artist}",
                         name=resp["tralbum_artist"],
