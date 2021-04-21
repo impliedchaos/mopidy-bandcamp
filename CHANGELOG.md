@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+v1.1.4
+------
+
+- Quick documentation update.
+- Fix for a change in Bandcamp's JSON formatting.
+
 v1.1.3
 ------
 
