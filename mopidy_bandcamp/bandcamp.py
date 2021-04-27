@@ -119,7 +119,7 @@ class BandcampClient:
             tralbum["num_downloadable_tracks"] = None
         return tralbum
 
-    def get_collection(self, token=None):
+    def get_collection(self, token=None, ctype="collection"):
         if not self.identity:
             return []
         headers = {"User-Agent": self.ua_str, "Cookie": f"identity={self.identity}"}
@@ -133,8 +133,13 @@ class BandcampClient:
             self.fan_id = resp.json()["fan_id"]
         if token is None:
             token = str(time()) + ":0:a::"
+        endpoint = "collection_items"
+        if ctype == "wishlist":
+            endpoint = "wishlist_items"
+        elif ctype == "following":
+            endpoint = "following_bands"
         resp = requests.post(
-            self.BASE_URL + "/fancollection/1/collection_items",
+            self.BASE_URL + "/fancollection/1/" + endpoint,
             headers=headers,
             proxies=self.proxy,
             json={
