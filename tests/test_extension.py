@@ -186,9 +186,11 @@ class ExtensionTest(unittest.TestCase):
         if cfg["bandcamp"]["identity"] is not None:
             backend = backend_lib.BandcampBackend(cfg, None)
             root = backend.library.browse("bandcamp:browse")
-            assert len(root) == 3
+            assert len(root) == 4
             col = backend.library.browse("bandcamp:collection")
-            assert len(col) == 3
+            assert len(col) > 1
+            wish = backend.library.browse("bandcamp:wishlist")
+            assert len(wish) > 1
             alb = backend.library.browse(col[0].uri)
             assert len(alb) > 1
             # Track we own
