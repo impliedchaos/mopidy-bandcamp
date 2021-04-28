@@ -122,6 +122,7 @@ class ExtensionTest(unittest.TestCase):
         assert artist == []
         album = backend.library.lookup("bandcamp:album:nope-nuhuh")
         assert album == []
+        sleep(1)
         res = backend.library.search(
             {"any": "Waveshaper", "album": ["Station", "Nova"]}
         )
@@ -132,10 +133,12 @@ class ExtensionTest(unittest.TestCase):
         assert isinstance(res, SearchResult)
         artist = backend.library.lookup("bandcamp:nothing")
         assert artist == []
+        sleep(1)
         artist = backend.library.lookup("bandcamp:artist:4274249518")
         assert isinstance(artist[0], Track)
         album = backend.library.lookup("bandcamp:album:4274249518-4240848302")
         assert isinstance(album[0], Track)
+        sleep(0.5)
         track = backend.library.lookup("bandcamp:track:2937093478-3573329354-2851348889")
         assert isinstance(track[0], Track)
         img = backend.library.get_images(
