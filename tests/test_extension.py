@@ -136,13 +136,13 @@ class ExtensionTest(unittest.TestCase):
         assert isinstance(artist[0], Track)
         album = backend.library.lookup("bandcamp:album:4274249518-4240848302")
         assert isinstance(album[0], Track)
-        track = backend.library.lookup("bandcamp:track:4274249518-4240848302-55800693")
+        track = backend.library.lookup("bandcamp:track:2937093478-3573329354-2851348889")
         assert isinstance(track[0], Track)
         img = backend.library.get_images(
-            ["bandcamp:track:4274249518-4240848302-55800693"]
+            ["bandcamp:track:1715582766-4294604529-839491036"]
         )
         assert isinstance(
-            img["bandcamp:track:4274249518-4240848302-55800693"][0], Image
+            img["bandcamp:track:1715582766-4294604529-839491036"][0], Image
         )
         img = backend.library.get_images(["bandcamp:browse", "bandcamp:tag:outrun"])
         assert isinstance(img["bandcamp:browse"][0], Image)
@@ -152,7 +152,7 @@ class ExtensionTest(unittest.TestCase):
         uri = backend.playback.translate_uri("chewbacca")
         assert uri is None
         uri = backend.playback.translate_uri(
-            "bandcamp:mytrack:3053572798-2944001033-3439398039"
+            "bandcamp:mytrack:1113572798-2944001033-1139398039"
         )
         assert uri is None
         uri = backend.playback.translate_uri("bandcamp:track:0-0-0")
@@ -178,6 +178,8 @@ class ExtensionTest(unittest.TestCase):
         assert root == []
         root = backend.library.browse("bandcamp:collection:0:0:a::")
         assert root == []
+        root = backend.library.browse("bandcamp:wishlist:0:0:a::")
+        assert root == []
 
     def test_auth(self):
         cfg = ExtensionTest.get_config()
@@ -188,11 +190,11 @@ class ExtensionTest(unittest.TestCase):
             root = backend.library.browse("bandcamp:browse")
             assert len(root) == 4
             col = backend.library.browse("bandcamp:collection")
-            assert len(col) > 1
+            assert len(col) >= 1
             wish = backend.library.browse("bandcamp:wishlist")
-            assert len(wish) > 1
+            assert len(wish) >= 1
             alb = backend.library.browse(col[0].uri)
-            assert len(alb) > 1
+            assert len(alb) >= 1
             # Track we own
             track = backend.library.lookup("bandcamp:mytrack:2937093478-0-4173304455")
             assert isinstance(track[0], Track)
