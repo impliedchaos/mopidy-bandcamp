@@ -1,6 +1,6 @@
 import os
 import unittest
-from unittest import mockcollection
+from unittest import mock
 from time import sleep
 
 from mopidy.models import Track, SearchResult, Image
