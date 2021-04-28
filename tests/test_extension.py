@@ -140,7 +140,7 @@ class ExtensionTest(unittest.TestCase):
         album = backend.library.lookup("bandcamp:album:4274249518-4240848302")
         assert isinstance(album[0], Track)
         sleep(0.5)
-        track = backend.library.lookup("bandcamp:track:2937093478-3573329354-2851348889")
+        track = backend.library.lookup("bandcamp:track:1715582766-4294604529-839491036")
         assert isinstance(track[0], Track)
         img = backend.library.get_images(
             ["bandcamp:track:1715582766-4294604529-839491036"]
