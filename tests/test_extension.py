@@ -1,6 +1,7 @@
 import os
 import unittest
-from unittest import mock
+from unittest import mockcollection
+from time import sleep
 
 from mopidy.models import Track, SearchResult, Image
 from mopidy_bandcamp import Extension
