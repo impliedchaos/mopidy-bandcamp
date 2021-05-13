@@ -142,6 +142,9 @@ class ExtensionTest(unittest.TestCase):
         sleep(0.5)
         track = backend.library.lookup("bandcamp:track:1715582766-4294604529-839491036")
         assert isinstance(track[0], Track)
+        track = backend.library.lookup("bandcamp:https://jasonwebley.bandcamp.com/track/in-this-light")
+        assert isinstance(track[0], Track)
+        assert track[0].uri == 'bandcamp:track:2220410354-3763840907-1951117791'
         img = backend.library.get_images(
             ["bandcamp:track:1715582766-4294604529-839491036"]
         )

@@ -102,9 +102,12 @@ class BandcampClient:
                     "Couldn't scrape data-embed from " + uri
                 )  # pragma: no cover
             tralbum.update(json.loads(unescape(data.group(1))))
-            data = re.search(r'application/ld\+json">\s*(.*?)\s*</script', resp.text)
             if "band_id" not in tralbum:
-                tralbum["band_id"] = None
+                if "current" in tralbum and "band_id" in tralbum["current"]:
+                    tralbum["band_id"] = tralbum["current"]["band_id"]
+                else:
+                    tralbum["band_id"] = None
+            data = re.search(r'application/ld\+json">\s*(.*?)\s*</script', resp.text)
             if data is not None:
                 ld = json.loads(data.group(1))
                 tralbum["keywords"] = ld["keywords"]

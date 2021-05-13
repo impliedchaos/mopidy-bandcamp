@@ -1,6 +1,12 @@
 Change Log
 ==========
 
+v1.1.5
+------
+
+- fixed another bug in scrape function for unauthenticated accounts
+- added Wishlist to browsing directory
+
 v1.1.4
 ------
 
