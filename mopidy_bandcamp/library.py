@@ -92,7 +92,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         out.append(
                             Ref.directory(
                                 uri="bandcamp:" + colltype + ":" + data["last_token"],
-                                name="More...",
+                                name="\ufeffMore...",
                             )
                         )
                 except Exception:
@@ -144,7 +144,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                 pagenum += self.pages
                 out.append(
                     Ref.directory(
-                        uri=f"bandcamp:{stype}:{sid}:{pagenum}", name="More..."
+                        uri=f"bandcamp:{stype}:{sid}:{pagenum}", name="\ufeffMore..."
                     )
                 )
             return out
