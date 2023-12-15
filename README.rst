@@ -93,6 +93,15 @@ Note: Adding an artist by clicking on the artist in a search result or by manual
 bandcamp page can take a long time depending on the artist.  This is because Mopidy-Bandcamp tries to load
 the entirety of the artist's discography.
 
+Mopidy-Bandcamp also supports bndcmpr.co playlists.  Just get the playlist id from the bndcmpr url, prepend with
+"bandcamp:bndcmpr" and add it to Mopidy.  For example, to add this bndcmpr playlist "https://bndcmpr.co/4dfdd589"
+using mpc on the command line:
+
+.. code:: shell
+
+    $ mpc add "bandcamp:bndcmpr:4dfdd589"
+
+Would add all the tracks in the bndcmpr playlist to the queue.
 
 Web Client
 ----------
@@ -107,7 +116,8 @@ as a URL for a bookmark in your web browser:
 
 Note: Replace *hostname* and *6680* with your mopidy server's hostname and configured HTTP port.
 
-Now when you're browsing bandcamp you can simply click that bookmark to add the current page to Mopidy.
+Now when you're browsing bandcamp (or a bndcmpr playlist) you can simply click that bookmark to add the
+current page to Mopidy.
 (This works in Chrome and Firefox.  I haven't bothered checking anything else.)
 
 Configuration

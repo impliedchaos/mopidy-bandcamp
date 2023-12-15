@@ -1,6 +1,9 @@
 import datetime
 import hashlib
+import json
 import re
+
+from concurrent.futures.thread import ThreadPoolExecutor
 
 from mopidy import backend
 from mopidy.models import Album, Artist, Image, Ref, SearchResult, Track
@@ -306,6 +309,14 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                                 f"bandcamp:track:{disc['band_id']}-0-{disc['item_id']}"
                             )
                         )
+        elif func == "bndcmpr":
+            bndcmpr_raw = self.backend.bandcamp._get(f"https://bndcmpr.co/api/list/{bcId}")
+            bndcmpr_tracks = json.loads(bndcmpr_raw["tracks"].encode().decode())
+            bndcmpr_uris = [f'bandcamp:{track["url"]}' for track in bndcmpr_tracks]
+            with ThreadPoolExecutor(4) as executor:
+                futures = executor.map(self.lookup, bndcmpr_uris)
+                [ret.extend(value) for value in futures if value is not None]
+            return ret
         elif re.match(r"^https?", func, re.I):
             url = uri[9:]
             try:
