@@ -37,11 +37,12 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                 dirs.append(Ref.directory(uri="bandcamp:wishlist", name="Wishlist"))
             return dirs
         for colltype in ["collection", "wishlist"]:
-            if uri.startswith("bandcamp:" + colltype):
+            out = {}
+            while uri.startswith("bandcamp:" + colltype):
                 token = None
                 if uri != "bandcamp:" + colltype:
                     token = uri.split(":", 2)[2]
-                out = []
+                uri = ""
                 try:
                     data = self.backend.bandcamp.get_collection(
                         token=token, ctype=colltype
@@ -59,16 +60,12 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                             if art:
                                 self.images[aId] = art
                             if colltype == "collection":
-                                out.append(
-                                    Ref.album(uri=f"bandcamp:myalbum:{aId}", name=name)
-                                )
+                                out[aId] = Ref.album(uri=f"bandcamp:myalbum:{aId}", name=name)
                                 self.scrape_urls[f"bandcamp:myalbum:{aId}"] = i[
                                     "item_url"
                                 ]
                             else:
-                                out.append(
-                                    Ref.album(uri=f"bandcamp:album:{aId}", name=name)
-                                )
+                                out[aId] = Ref.album(uri=f"bandcamp:album:{aId}", name=name)
                         elif i["tralbum_type"] == "t":
                             aId = 0
                             if i["album_id"] is not None:
@@ -78,26 +75,18 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                             if art:
                                 self.images[tId] = art
                             if colltype == "collection":
-                                out.append(
-                                    Ref.album(uri=f"bandcamp:mytrack:{tId}", name=name)
-                                )
+                                out[tId] = Ref.album(uri=f"bandcamp:mytrack:{tId}", name=name)
                                 self.scrape_urls[f"bandcamp:mytrack:{tId}"] = i[
                                     "item_url"
                                 ]
                             else:
-                                out.append(
-                                    Ref.album(uri=f"bandcamp:track:{tId}", name=name)
-                                )
+                                out[tId] = Ref.album(uri=f"bandcamp:track:{tId}", name=name)
                     if data["more_available"]:
-                        out.append(
-                            Ref.directory(
-                                uri="bandcamp:" + colltype + ":" + data["last_token"],
-                                name="More...",
-                            )
-                        )
+                        uri = f"bandcamp:{colltype}:{data['last_token']}"
                 except Exception:
                     logger.exception("Failed to get collection")
-                return out
+            if out:
+                return list(out.values())
         if uri == "bandcamp:genres" or uri == "bandcamp:tags":
             stype = uri.split(":")[1]
             return [
