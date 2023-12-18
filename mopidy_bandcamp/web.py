@@ -15,6 +15,11 @@ class WebHandler(tornado.web.RequestHandler):
                 self.write(
                     "<!DOCTYPE html><html><head><title>URL Added</title><script>alert('URL has been added.');window.history.back()</script></head></html>"
                 )
+            elif re.match(r"^https?://bndcmpr\.co/", url):
+                self.core.tracklist.add(uris=[f"bandcamp:bndcmpr:{url[-8:]}"])
+                self.write(
+                    "<!DOCTYPE html><html><head><title>BNDCMPR Playlist Added</title><script>alert('BNDCMPR Playlist has been added.');window.history.back()</script></head></html>"
+                )
             else:
                 self.write(
                     "<!DOCTYPE html><html><head><title>Error</title></head><body><h1>Error</h1><p>Invalid URL: &quot;%s&quot;</p></body></html>"
