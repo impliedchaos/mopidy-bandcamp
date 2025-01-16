@@ -13,7 +13,7 @@ Mopidy-Bandcamp
     :target: https://github.com/impliedchaos/mopidy-bandcamp/commits/master
     :alt: Latest GitHub Commits
 
-.. image:: https://img.shields.io/github/workflow/status/impliedchaos/mopidy-bandcamp/CI?logo=GitHub&label=CI%20build
+.. image:: https://img.shields.io/github/actions/workflow/status/impliedchaos/mopidy-bandcamp/CI.yml?logo=GitHub&label=CI%20build
     :target: https://github.com/impliedchaos/mopidy-bandcamp/actions
     :alt: CI build status
 
