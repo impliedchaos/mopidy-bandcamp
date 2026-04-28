@@ -1,7 +1,7 @@
 import json
 import mopidy_bandcamp
 import re
-import requests
+import httpx
 
 from html import unescape
 from mopidy import httpclient
@@ -43,17 +43,22 @@ class BandcampClient:
     }
 
     def __init__(self, config):
-        self.proxy = httpclient.format_proxy(config["proxy"])
-        self.ua_str = httpclient.format_user_agent(
+        user_agent = httpclient.format_user_agent(
             f"{mopidy_bandcamp.Extension.dist_name}/{mopidy_bandcamp.__version__}"
+        )
+        proxy = httpclient.format_proxy(config["proxy"])
+        self._client = httpx.Client(
+            proxy=proxy,
+            headers={
+                "user-agent": user_agent,
+            },
         )
         self.identity = config["bandcamp"]["identity"]
         self.collection_items = config["bandcamp"]["collection_items"]
         self.fan_id = None
 
     def _get(self, *args, **kwargs):
-        headers = {"User-Agent": self.ua_str}
-        resp = requests.get(*args, **kwargs, headers=headers, proxies=self.proxy)
+        resp = self._client.get(*args, **kwargs)
         resp.raise_for_status()
         js = resp.json()
         if "error" in js:
@@ -61,8 +66,7 @@ class BandcampClient:
         return js
 
     def _post(self, *args, **kwargs):
-        headers = {"User-Agent": self.ua_str}
-        resp = requests.post(*args, **kwargs, headers=headers, proxies=self.proxy)
+        resp = self._client.post(*args, **kwargs)
         resp.raise_for_status()
         js = resp.json()
         if "error" in js:
@@ -70,10 +74,10 @@ class BandcampClient:
         return js
 
     def scrape(self, uri):
-        headers = {"User-Agent": self.ua_str}
+        headers = {}
         if self.identity:
             headers["Cookie"] = f"identity={self.identity}"
-        resp = requests.get(uri, headers=headers, proxies=self.proxy)
+        resp = self._client.get(uri, headers=headers)
         resp.raise_for_status()
         # Build the tralbum data by joining multiple json chunks.
         data = re.search(r'\s+data-tralbum="(.*?)"', resp.text)
@@ -125,15 +129,13 @@ class BandcampClient:
     def get_collection(self, token=None, ctype="collection"):
         if not self.identity:
             return []
-        headers = {"User-Agent": self.ua_str, "Cookie": f"identity={self.identity}"}
+        headers = {"Cookie": f"identity={self.identity}"}
         if self.fan_id is None:
-            resp = requests.get(
+            js = self._get(
                 self.BASE_URL + "/fan/2/collection_summary",
-                headers=headers,
-                proxies=self.proxy,
+                headers=headers
             )
-            resp.raise_for_status()
-            self.fan_id = resp.json()["fan_id"]
+            self.fan_id = js["fan_id"]
         if token is None:
             token = str(time()) + ":0:a::"
         endpoint = "collection_items"
@@ -141,20 +143,15 @@ class BandcampClient:
             endpoint = "wishlist_items"
         elif ctype == "following":
             endpoint = "following_bands"
-        resp = requests.post(
+        js = self._post(
             self.BASE_URL + "/fancollection/1/" + endpoint,
             headers=headers,
-            proxies=self.proxy,
             json={
                 "fan_id": self.fan_id,
                 "older_than_token": token,
                 "count": self.collection_items,
             },
         )
-        resp.raise_for_status()
-        js = resp.json()
-        if "error" in js:
-            raise RuntimeError(js["error_message"])  # pragma: no cover
         return js
 
     def get_album(self, artistid, itemid, track=False):
