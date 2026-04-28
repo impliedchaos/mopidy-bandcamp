@@ -237,7 +237,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                 uri=f"bandcamp:artist:{artist}",
                 name=resp["tralbum_artist"],
                 sortname=resp["tralbum_artist"],
-                musicbrainz_id="",
+                musicbrainz_id=None,
             )
             albref = None
             if "album_title" in resp:
@@ -248,7 +248,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                     num_tracks=resp["num_downloadable_tracks"],
                     num_discs=None,
                     date=year,
-                    musicbrainz_id="",
+                    musicbrainz_id=None,
                 )
             for track in resp["tracks"]:
                 if "is_streamable" not in track or track["is_streamable"]:
@@ -268,7 +268,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         else None,
                         bitrate=320 if my == "my" else 128,
                         comment=comment,
-                        musicbrainz_id="",
+                        musicbrainz_id=None,
                         last_modified=None,
                     )
                     ret.append(trref)
@@ -347,7 +347,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         uri=f"bandcamp:artist:{artist}",
                         name=resp["tralbum_artist"],
                         sortname=resp["tralbum_artist"],
-                        musicbrainz_id="",
+                        musicbrainz_id=None,
                     )
                     albref = None
                     if "album_title" in resp:
@@ -358,7 +358,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                             num_tracks=resp["num_downloadable_tracks"],
                             num_discs=None,
                             date=year,
-                            musicbrainz_id="",
+                            musicbrainz_id=None,
                         )
                     for track in resp["tracks"]:
                         if "file" in track:
@@ -378,7 +378,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                                 else None,
                                 bitrate=320 if "mp3-v0" in track["file"] else 128,
                                 comment=comment,
-                                musicbrainz_id="",
+                                musicbrainz_id=None,
                                 last_modified=None,
                             )
                             ret.append(trref)
@@ -418,7 +418,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         uri=f"bandcamp:artist:{r['band_id']}",
                         name=r["band_name"],
                         sortname=r["band_name"],
-                        musicbrainz_id="",
+                        musicbrainz_id=None,
                     )
                     albref = Album(
                         uri=f"bandcamp:album:{r['band_id']}-{r['album_id']}",
@@ -427,7 +427,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         num_tracks=None,
                         num_discs=None,
                         date="0000",
-                        musicbrainz_id="",
+                        musicbrainz_id=None,
                     )
                     comment = ""
                     if "url" in r:
@@ -450,7 +450,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         length=None,
                         bitrate=128,
                         comment=comment,
-                        musicbrainz_id="",
+                        musicbrainz_id=None,
                         last_modified=None,
                     )
                     tracks.add(trref)
@@ -459,7 +459,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         uri=f"bandcamp:artist:{r['band_id']}",
                         name=r["band_name"],
                         sortname=r["band_name"],
-                        musicbrainz_id="",
+                        musicbrainz_id=None,
                     )
                     albref = Album(
                         uri=f"bandcamp:album:{r['band_id']}-{r['id']}",
@@ -468,7 +468,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         num_tracks=None,
                         num_discs=None,
                         date="0000",
-                        musicbrainz_id="",
+                        musicbrainz_id=None,
                     )
                     albums.add(albref)
                 elif r["type"] == "b":
@@ -476,7 +476,7 @@ class BandcampLibraryProvider(backend.LibraryProvider):
                         uri=f"bandcamp:artist:{r['id']}",
                         name=r["name"],
                         sortname=r["name"],
-                        musicbrainz_id="",
+                        musicbrainz_id=None,
                     )
                     artists.add(artref)
         logger.debug(
