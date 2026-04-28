@@ -7,13 +7,14 @@ from concurrent.futures.thread import ThreadPoolExecutor
 
 from mopidy import backend
 from mopidy.models import Album, Artist, Image, Ref, SearchResult, Track
+from mopidy.types import Uri
 from urllib.parse import quote
 
 from mopidy_bandcamp import logger
 
 
 class BandcampLibraryProvider(backend.LibraryProvider):
-    root_directory = Ref.directory(uri="bandcamp:browse", name="bandcamp")
+    root_directory = Ref.directory(uri=Uri("bandcamp:browse"), name="bandcamp")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
