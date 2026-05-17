@@ -1,22 +1,28 @@
 import re
+
+from mopidy.types import Uri
+
 import tornado.web
+
+from mopidy.config import Config
+from mopidy.core import CoreProxy
 
 
 class WebHandler(tornado.web.RequestHandler):
-    def initialize(self, config, core):
+    def initialize(self, config: Config, core: CoreProxy) -> None:
         self.core = core
         self.config = config
 
-    def get(self):
+    def get(self) -> None:
         url = self.get_argument("url", None)
         if url is not None:
             if re.match(r"^https?://[^/]+.bandcamp\.com/", url):
-                self.core.tracklist.add(uris=[f"bandcamp:{url}"])
+                self.core.tracklist.add(uris=[Uri(f"bandcamp:{url}")])
                 self.write(
                     "<!DOCTYPE html><html><head><title>URL Added</title><script>alert('URL has been added.');window.history.back()</script></head></html>"
                 )
             elif re.match(r"^https?://bndcmpr\.co/", url):
-                self.core.tracklist.add(uris=[f"bandcamp:bndcmpr:{url[-8:]}"])
+                self.core.tracklist.add(uris=[Uri(f"bandcamp:bndcmpr:{url[-8:]}")])
                 self.write(
                     "<!DOCTYPE html><html><head><title>BNDCMPR Playlist Added</title><script>alert('BNDCMPR Playlist has been added.');window.history.back()</script></head></html>"
                 )

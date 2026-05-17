@@ -1,7 +1,12 @@
 import logging
-import os
+from pathlib import Path
+from typing import Any
 
 from mopidy import config, ext
+from mopidy.config import Config, ConfigSchema
+from mopidy.core import CoreProxy
+from mopidy.ext import Registry
+
 
 __version__ = "1.1.5"
 
@@ -14,11 +19,11 @@ class Extension(ext.Extension):
     ext_name = "bandcamp"
     version = __version__
 
-    def get_default_config(self):
-        conf_file = os.path.join(os.path.dirname(__file__), "ext.conf")
+    def get_default_config(self) -> str:
+        conf_file = Path(__file__).parent / "ext.conf"
         return config.read(conf_file)
 
-    def get_config_schema(self):
+    def get_config_schema(self) -> ConfigSchema:
         schema = super(Extension, self).get_config_schema()
         schema["discover_pages"] = config.Integer(optional=True)
         schema["collection_items"] = config.Integer(optional=True)
@@ -28,13 +33,13 @@ class Extension(ext.Extension):
         schema["identity"] = config.String(optional=True)
         return schema
 
-    def setup(self, registry):
+    def setup(self, registry: Registry) -> None:
         from .backend import BandcampBackend
 
         registry.add("backend", BandcampBackend)
         registry.add("http:app", {"name": self.ext_name, "factory": self.factory})
 
-    def factory(self, config, core):
+    def factory(self, config: Config, core: CoreProxy) -> Any:
         from .web import WebHandler
 
         return [(r"/", WebHandler, {"config": config, "core": core})]
