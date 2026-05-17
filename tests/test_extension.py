@@ -4,8 +4,9 @@ from unittest import mock
 from time import sleep
 
 from mopidy.models import Track, SearchResult, Image
+
 from mopidy_bandcamp import Extension
-from mopidy_bandcamp import backend as backend_lib
+import mopidy_bandcamp.backend as backend_lib
 
 
 class ExtensionTest(unittest.TestCase):
@@ -91,10 +92,10 @@ class ExtensionTest(unittest.TestCase):
 
     def test_browse(self):
         backend = backend_lib.BandcampBackend(ExtensionTest.get_config(), None)
-        root = backend.library.browse(None)
+        root = backend.library.browse("")
         assert root == []
         root = backend.library.browse("chewbacca")
-        assert root is None
+        assert root == []
         root = backend.library.browse("bandcamp:browse")
         assert len(root) == 2
         g1 = backend.library.browse("bandcamp:genres")
@@ -135,9 +136,9 @@ class ExtensionTest(unittest.TestCase):
         artist = backend.library.lookup("bandcamp:nothing")
         assert artist == []
         sleep(1)
-        artist = backend.library.lookup("bandcamp:artist:4274249518")
+        artist = backend.library.lookup("bandcamp:artist:1715582766")
         assert isinstance(artist[0], Track)
-        album = backend.library.lookup("bandcamp:album:4274249518-4240848302")
+        album = backend.library.lookup("bandcamp:album:1715582766-4294604529")
         assert isinstance(album[0], Track)
         sleep(0.5)
         track = backend.library.lookup("bandcamp:track:1715582766-4294604529-839491036")
@@ -224,7 +225,7 @@ class ExtensionTest(unittest.TestCase):
         backend = backend_lib.BandcampBackend(cfg, None)
         nothing = backend.library.lookup("bandcamp:https://bandcamp.com/")
         assert nothing == []
-        artist = backend.library.lookup("bandcamp:https://kitschclub.bandcamp.com/")
+        artist = backend.library.lookup("bandcamp:https://natachatertone.bandcamp.com/")
         assert len(artist) > 1
         album = backend.library.lookup(
             "bandcamp:https://louiezong.bandcamp.com/album/jazz"
@@ -241,7 +242,7 @@ class ExtensionTest(unittest.TestCase):
         backend = backend_lib.BandcampBackend(cfg, None)
         nothing = backend.library.lookup("bandcamp:https://bandcamp.com/")
         assert nothing == []
-        artist = backend.library.lookup("bandcamp:https://kitschclub.bandcamp.com/")
+        artist = backend.library.lookup("bandcamp:https://natachatertone.bandcamp.com/")
         assert len(artist) > 1
         album = backend.library.lookup(
             "bandcamp:https://louiezong.bandcamp.com/album/jazz"
