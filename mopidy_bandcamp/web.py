@@ -46,7 +46,7 @@ class WebHandler(tornado.web.RequestHandler):
 <body><div class="box focus">
     <h1>Mopidy-Bandcamp</h1>
     <p>
-      The purpose of this webclient is to be able to easily add bandcamp 
+      The purpose of this webclient is to be able to easily add bandcamp
       albums to Mopidy from your web browser.
     </p>
   </div>
@@ -73,7 +73,7 @@ class WebHandler(tornado.web.RequestHandler):
         </script>
       <p>
         <h3>Why is this here?</h3>
-        <p>Copy the above snippet, and create a bookmark in your web browser with the snippet as the URL. 
+        <p>Copy the above snippet, and create a bookmark in your web browser with the snippet as the URL.
            When you're browsing bandcamp, you can simply click that bookmark to add the current page to Mopidy.</p>
            <a href="https://github.com/impliedchaos/mopidy-bandcamp#web-client">more info</a>
       </p>
