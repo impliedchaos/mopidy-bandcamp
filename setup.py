@@ -23,8 +23,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "setuptools",
-        "Mopidy >= 3.0.0",
-        "Pykka >= 1.1",
+        "Mopidy >= 4.0.0"
     ],
     entry_points={
         "mopidy.ext": [
@@ -36,10 +35,7 @@ setup(
         "Intended Audience :: End Users/Desktop",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.13",
         "Topic :: Multimedia :: Sound/Audio :: Players",
     ],
 )
