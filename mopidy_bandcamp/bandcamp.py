@@ -1,11 +1,14 @@
-import json
-import mopidy_bandcamp
-import re
-import requests
-
 from html import unescape
-from mopidy import httpclient
+import json
+import re
+from importlib.metadata import distribution
 from time import time
+from typing import Any
+
+import httpx
+
+from mopidy import httpclient
+from mopidy.config import Config
 
 
 class BandcampClient:
@@ -42,38 +45,43 @@ class BandcampClient:
         "27": [715, 402],
     }
 
-    def __init__(self, config):
-        self.proxy = httpclient.format_proxy(config["proxy"])
-        self.ua_str = httpclient.format_user_agent(
-            f"{mopidy_bandcamp.Extension.dist_name}/{mopidy_bandcamp.__version__}"
+    def __init__(self, config: Config):
+        dist = distribution("Mopidy-Bandcamp")
+        user_agent = httpclient.format_user_agent(
+            f"{dist.name}/{dist.version}"
+        )
+        proxy = httpclient.format_proxy(config["proxy"])
+        self._client = httpx.Client(
+            proxy=proxy,
+            headers={
+                "user-agent": user_agent,
+            },
         )
         self.identity = config["bandcamp"]["identity"]
         self.collection_items = config["bandcamp"]["collection_items"]
         self.fan_id = None
 
-    def _get(self, *args, **kwargs):
-        headers = {"User-Agent": self.ua_str}
-        resp = requests.get(*args, **kwargs, headers=headers, proxies=self.proxy)
+    def _get(self, *args, **kwargs) -> dict[str, Any]:
+        resp = self._client.get(*args, **kwargs)
         resp.raise_for_status()
         js = resp.json()
         if "error" in js:
             raise RuntimeError(js["error_message"])
         return js
 
-    def _post(self, *args, **kwargs):
-        headers = {"User-Agent": self.ua_str}
-        resp = requests.post(*args, **kwargs, headers=headers, proxies=self.proxy)
+    def _post(self, *args, **kwargs) -> dict[str, Any]:
+        resp = self._client.post(*args, **kwargs)
         resp.raise_for_status()
         js = resp.json()
         if "error" in js:
             raise RuntimeError(js["error_message"])
         return js
 
-    def scrape(self, uri):
-        headers = {"User-Agent": self.ua_str}
+    def scrape(self, uri: str) -> dict[str, Any]:
+        headers = {}
         if self.identity:
             headers["Cookie"] = f"identity={self.identity}"
-        resp = requests.get(uri, headers=headers, proxies=self.proxy)
+        resp = self._client.get(uri, headers=headers)
         resp.raise_for_status()
         # Build the tralbum data by joining multiple json chunks.
         data = re.search(r'\s+data-tralbum="(.*?)"', resp.text)
@@ -122,18 +130,20 @@ class BandcampClient:
             tralbum["num_downloadable_tracks"] = None
         return tralbum
 
-    def get_collection(self, token=None, ctype="collection"):
+    def get_collection(
+        self,
+        token: str | None = None,
+        ctype: str = "collection"
+    ) -> dict[str, Any]:
         if not self.identity:
-            return []
-        headers = {"User-Agent": self.ua_str, "Cookie": f"identity={self.identity}"}
+            return {}
+        headers = {"Cookie": f"identity={self.identity}"}
         if self.fan_id is None:
-            resp = requests.get(
+            js = self._get(
                 self.BASE_URL + "/fan/2/collection_summary",
-                headers=headers,
-                proxies=self.proxy,
+                headers=headers
             )
-            resp.raise_for_status()
-            self.fan_id = resp.json()["fan_id"]
+            self.fan_id = js["fan_id"]
         if token is None:
             token = str(time()) + ":0:a::"
         endpoint = "collection_items"
@@ -141,23 +151,18 @@ class BandcampClient:
             endpoint = "wishlist_items"
         elif ctype == "following":
             endpoint = "following_bands"
-        resp = requests.post(
+        js = self._post(
             self.BASE_URL + "/fancollection/1/" + endpoint,
             headers=headers,
-            proxies=self.proxy,
             json={
                 "fan_id": self.fan_id,
                 "older_than_token": token,
                 "count": self.collection_items,
             },
         )
-        resp.raise_for_status()
-        js = resp.json()
-        if "error" in js:
-            raise RuntimeError(js["error_message"])  # pragma: no cover
         return js
 
-    def get_album(self, artistid, itemid, track=False):
+    def get_album(self, artistid: str, itemid: str, track: bool = False) -> dict[str, Any]:
         js = self._get(
             self.BASE_URL
             + "/mobile/24/tralbum_details?band_id="
@@ -169,21 +174,27 @@ class BandcampClient:
         )
         return js
 
-    def get_track(self, artistid, trackid):
+    def get_track(self, artistid: str, trackid: str) -> dict[str, Any]:
         return self.get_album(artistid, trackid, track=True)
 
-    def get_artist(self, artistid):
+    def get_artist(self, artistid: str) -> Any:
         js = self._post(
             self.BASE_URL + "/mobile/24/band_details",
             json={"band_id": artistid},
         )
         return js
 
-    def search(self, query):
+    def search(self, query: str) -> dict[str, Any]:
         js = self._get(f"{self.BASE_URL}/fuzzysearch/1/app_autocomplete?q={query}")
         return js
 
-    def discover(self, sort="top", genre="all", tag=None, page=0):
+    def discover(
+        self,
+        sort: str = "top",
+        genre: str = "all",
+        tag: str | None = None,
+        page: int = 0
+    ) -> dict[str, Any]:
         query = f"{self.BASE_URL}/discover/2/get?s={sort}&l=0&emulate_loc=true&f=all&g={genre}"
         if tag is not None:
             query += f"&t={tag}"

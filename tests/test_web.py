@@ -4,14 +4,13 @@ import tornado.testing
 import tornado.web
 import tornado.websocket
 
-import mopidy.config as config
 from mopidy_bandcamp import Extension
 
 
 class BaseTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         extension = Extension()
-        self.config = config.Proxy({})
+        self.config = extension.get_default_config()
         return tornado.web.Application(extension.factory(self.config, mock.Mock()))
 
 

@@ -1,22 +1,28 @@
 import re
+
+from mopidy.types import Uri
+
 import tornado.web
+
+from mopidy.config import Config
+from mopidy.core import CoreProxy
 
 
 class WebHandler(tornado.web.RequestHandler):
-    def initialize(self, config, core):
+    def initialize(self, config: Config, core: CoreProxy) -> None:
         self.core = core
         self.config = config
 
-    def get(self):
+    def get(self) -> None:
         url = self.get_argument("url", None)
         if url is not None:
             if re.match(r"^https?://[^/]+.bandcamp\.com/", url):
-                self.core.tracklist.add(uris=[f"bandcamp:{url}"])
+                self.core.tracklist.add(uris=[Uri(f"bandcamp:{url}")])
                 self.write(
                     "<!DOCTYPE html><html><head><title>URL Added</title><script>alert('URL has been added.');window.history.back()</script></head></html>"
                 )
             elif re.match(r"^https?://bndcmpr\.co/", url):
-                self.core.tracklist.add(uris=[f"bandcamp:bndcmpr:{url[-8:]}"])
+                self.core.tracklist.add(uris=[Uri(f"bandcamp:bndcmpr:{url[-8:]}")])
                 self.write(
                     "<!DOCTYPE html><html><head><title>BNDCMPR Playlist Added</title><script>alert('BNDCMPR Playlist has been added.');window.history.back()</script></head></html>"
                 )
@@ -46,7 +52,7 @@ class WebHandler(tornado.web.RequestHandler):
 <body><div class="box focus">
     <h1>Mopidy-Bandcamp</h1>
     <p>
-      The purpose of this webclient is to be able to easily add bandcamp 
+      The purpose of this webclient is to be able to easily add bandcamp
       albums to Mopidy from your web browser.
     </p>
   </div>
@@ -73,7 +79,7 @@ class WebHandler(tornado.web.RequestHandler):
         </script>
       <p>
         <h3>Why is this here?</h3>
-        <p>Copy the above snippet, and create a bookmark in your web browser with the snippet as the URL. 
+        <p>Copy the above snippet, and create a bookmark in your web browser with the snippet as the URL.
            When you're browsing bandcamp, you can simply click that bookmark to add the current page to Mopidy.</p>
            <a href="https://github.com/impliedchaos/mopidy-bandcamp#web-client">more info</a>
       </p>
