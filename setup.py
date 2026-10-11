@@ -23,7 +23,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "setuptools",
-        "Mopidy >= 4.0.0"
+        "Mopidy >= 4.0.1"
     ],
     entry_points={
         "mopidy.ext": [

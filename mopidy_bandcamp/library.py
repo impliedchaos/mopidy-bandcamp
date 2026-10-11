@@ -11,7 +11,7 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from mopidy.backend import Backend, LibraryProvider
 from mopidy.config import Config
 from mopidy.models import Album, Artist, Image, Ref, SearchResult, Track
-from mopidy.types import DurationMs, Query, SearchField, Uri, Year
+from mopidy.types import DurationMs, Query, SearchField, Uri, ReleaseDate
 
 from mopidy_bandcamp.bandcamp import BandcampClient
 
@@ -246,14 +246,14 @@ class BandcampLibraryProvider(LibraryProvider):
                     url = resp["bandcamp_url"]
                     resp = self.bandcamp.scrape(url)
                     comment = "URL: " + url
-            year: Year | None = None
+            year: ReleaseDate | None = None
             if "release_date" in resp and resp["release_date"] is not None:
                 dt = datetime.date
-                year = Year(dt.fromtimestamp(resp["release_date"]).strftime("%Y"))
+                year = ReleaseDate(dt.fromtimestamp(resp["release_date"]).strftime("%Y"))
             elif (
                 "album_release_date" in resp and resp["album_release_date"] is not None
             ):
-                year = Year(resp["album_release_date"].split(" ")[2])
+                year = ReleaseDate(resp["album_release_date"].split(" ")[2])
             if "bandcamp_url" in resp:
                 comment = "URL: " + resp["bandcamp_url"]
             if "art_id" in resp:
@@ -358,13 +358,13 @@ class BandcampLibraryProvider(LibraryProvider):
                         "album_release_date" in resp
                         and resp["album_release_date"] is not None
                     ):
-                        year = Year(resp["album_release_date"].split(" ")[2])
+                        year = ReleaseDate(resp["album_release_date"].split(" ")[2])
                     elif (
                         "current" in resp
                         and "release_date" in resp["current"]
                         and resp["current"]["release_date"] is not None
                     ):
-                        year = Year(resp["current"]["release_date"].split(" ")[2])
+                        year = ReleaseDate(resp["current"]["release_date"].split(" ")[2])
                     comment = "URL: " + url
                     if "art_id" in resp:
                         self.images[f"{artist}-{album}"] = f"a{resp['art_id']:010d}"
